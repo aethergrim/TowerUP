@@ -13,6 +13,7 @@ signal health_depleted()
 @export var passive_cool_rate: float = 8.0
 @export var ammo: int = 10
 @export var max_health: float = 150.0
+@export var projectile_scene: PackedScene = preload("res://scenes/battle/TowerProjectile.tscn")
 
 var heat: float = 0.0
 var health: float = 0.0
@@ -20,6 +21,7 @@ var _attack_timer: float = 0.0
 var _overheat_triggered: bool = false
 var _sprite: Sprite2D = null
 var _destroyed: bool = false
+var _projectile_parent: Node = null
 
 func _ready() -> void:
     add_to_group("tower")
@@ -30,6 +32,9 @@ func _ready() -> void:
     health = max_health
     _destroyed = false
     health_changed.emit(health, max_health)
+    _projectile_parent = get_node_or_null("Projectiles")
+    if _projectile_parent == null:
+        _projectile_parent = self
     queue_redraw()
 
 func _process(delta: float) -> void:
@@ -46,6 +51,9 @@ func _attempt_attack() -> void:
             overheated.emit()
             _overheat_triggered = true
         return
+    var target := _find_target_enemy()
+    if target == null:
+        return
     _attack_timer = 0.0
     ammo -= 1
     ammo_consumed.emit(1)
@@ -53,18 +61,42 @@ func _attempt_attack() -> void:
     if heat >= max_heat and not _overheat_triggered:
         overheated.emit()
         _overheat_triggered = true
-    _apply_damage_to_enemies()
+    _spawn_projectile(target)
     queue_redraw()
-
-func _apply_damage_to_enemies() -> void:
+func _find_target_enemy() -> Node2D:
     var enemies: Array = get_tree().get_nodes_in_group("enemies")
+    var closest: Node2D = null
+    var closest_distance: float = attack_range
     for node in enemies:
         var enemy := node as Node2D
         if enemy == null:
             continue
-        if enemy.global_position.distance_to(global_position) <= attack_range:
-            if enemy.has_method("take_damage"):
-                enemy.take_damage(base_damage)
+        if not is_instance_valid(enemy):
+            continue
+        var distance: float = enemy.global_position.distance_to(global_position)
+        if distance > attack_range:
+            continue
+        if closest == null or distance < closest_distance:
+            closest = enemy
+            closest_distance = distance
+    return closest
+
+func _spawn_projectile(target: Node2D) -> void:
+    if projectile_scene == null:
+        if target and target.has_method("take_damage"):
+            target.take_damage(base_damage)
+        return
+    var projectile_instance := projectile_scene.instantiate()
+    var projectile := projectile_instance as Node2D
+    if projectile == null:
+        return
+    var parent_node: Node = _projectile_parent
+    if parent_node == null:
+        parent_node = self
+    parent_node.add_child(projectile)
+    projectile.global_position = global_position
+    if projectile.has_method("initialize"):
+        projectile.initialize(target, base_damage)
 
 func _cool_down(delta: float) -> void:
     if heat <= 0.0:

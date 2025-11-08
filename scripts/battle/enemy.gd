@@ -15,6 +15,7 @@ var _target: Node2D = null
 var _tier: int = Constants.EnemyTier.GRUNT
 var _sprite: Sprite2D = null
 var _attack_timer: float = 0.0
+var _in_attack_range: bool = false
 
 func _ready() -> void:
     add_to_group("enemies")
@@ -59,10 +60,15 @@ func _process(delta: float) -> void:
     if distance > attack_radius:
         var direction: Vector2 = offset.normalized()
         global_position += direction * speed * delta
+        _in_attack_range = false
+        _attack_timer = min(_attack_timer, attack_interval)
     else:
+        if not _in_attack_range:
+            _in_attack_range = true
+            _attack_timer = attack_interval
         _attack_timer += delta
         if _attack_timer >= attack_interval:
-            _attack_timer = 0.0
+            _attack_timer -= attack_interval
             _apply_contact_damage()
 
 func _apply_placeholder_texture() -> void:
