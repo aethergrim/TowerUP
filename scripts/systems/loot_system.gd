@@ -19,20 +19,18 @@ func spawn_loot(spawn_position: Vector2, loot_type: String) -> void:
         return
     add_child(loot_instance)
     loot_instance.global_position = spawn_position
-    if loot_instance.has_variable("loot_type"):
+    if loot_instance.has_method("set_loot_type"):
+        loot_instance.set_loot_type(loot_type)
+    elif loot_instance.has_method("set"):
         loot_instance.set("loot_type", loot_type)
     if loot_instance.has_signal("claimed"):
-        loot_instance.claimed.connect(_on_loot_claimed)
+        loot_instance.claimed.connect(_on_loot_claimed.bind(loot_instance))
     _active_loot.append(loot_instance)
     loot_spawned.emit(loot_instance)
 
 func get_loot_nodes() -> Array[Node2D]:
     return _active_loot.duplicate()
 
-func _on_loot_claimed(loot_type: String) -> void:
-    var remaining: Array[Node2D] = []
-    for loot in _active_loot:
-        if is_instance_valid(loot) and not loot.is_queued_for_deletion():
-            remaining.append(loot)
-    _active_loot = remaining
+func _on_loot_claimed(loot_type: String, loot_node: Node2D) -> void:
+    _active_loot.erase(loot_node)
     loot_claimed.emit(loot_type)

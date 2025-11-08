@@ -17,6 +17,7 @@ var current_config: Dictionary = {
 }
 var pending_ammo: int = 0
 var pending_cooling: float = 0.0
+var last_wave_victory: bool = true
 
 func _ready() -> void:
     current_config = _make_wave_config(current_wave)
@@ -29,6 +30,7 @@ func start_new_game() -> void:
     }
     pending_ammo = 0
     pending_cooling = 0.0
+    last_wave_victory = true
     current_config = _make_wave_config(current_wave)
     _change_scene(BATTLE_SCENE_PATH)
 
@@ -38,10 +40,19 @@ func continue_to_next_wave() -> void:
     _change_scene(BATTLE_SCENE_PATH)
 
 func report_wave_complete(result: Dictionary) -> void:
-    for key in result.keys():
+    var resource_payload: Dictionary = {}
+    if result.has("resources") and result["resources"] is Dictionary:
+        resource_payload = result["resources"]
+    else:
+        resource_payload = result
+    for key in resource_payload.keys():
         if not resources.has(key):
             resources[key] = 0
-        resources[key] += int(result[key])
+        resources[key] += int(resource_payload[key])
+    var victory: bool = true
+    if result.has("victory"):
+        victory = bool(result["victory"])
+    last_wave_victory = victory
     _change_scene(UPGRADE_SCENE_PATH)
 
 func get_current_wave_config() -> Dictionary:

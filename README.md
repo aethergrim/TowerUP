@@ -9,13 +9,17 @@ res://
 ├── CODEX_RULES.md          # Guardrails for GDScript development in this project
 ├── project.godot           # Godot project configuration (autoload + inputs)
 ├── scenes/
-│   ├── battle/BattleScene.tscn      # Active wave gameplay (tower, enemies, lasso, loot)
+│   ├── battle/
+│   │   ├── BattleScene.tscn         # Active wave gameplay with camera + HUD
+│   │   ├── Tower.tscn               # Tower core scene with health/heat logic
+│   │   ├── Enemy.tscn               # Generic enemy body used by the spawner tiers
+│   │   └── Loot.tscn                # Collectable resources spawned on enemy defeat
 │   ├── main_menu/StartMenu.tscn     # Campaign/Skirmish entry with options and quit controls
 │   ├── main_menu/LetterModifierWarning.tscn  # Narrative letter prompt before waves
 │   └── upgrade/UpgradeScene.tscn    # Intermission letter + upgrade selection
 ├── mobs/                            # Enemy archetype folders and texture stubs
 └── scripts/
-    ├── battle/battle_scene.gd       # Coordinates battle systems and wave flow
+    ├── battle/battle_scene.gd       # Coordinates battle systems, tower state, and wave flow
     ├── game_manager.gd              # Autoload singleton handling waves/resources
     ├── systems/                     # Modular gameplay systems (tower, lasso, loot, etc.)
     └── ui/                          # UI logic for menu and upgrade scenes
@@ -25,7 +29,7 @@ res://
 
 1. Open the project in Godot 4.4.1.
 2. Ensure `GameManager` is registered as an autoload (configured in `project.godot`).
-3. Run the project — the main menu loads first. Start a new game to enter the battle scene, and survive a wave to preview the upgrade/letter flow.
+3. Run the project — the main menu loads first. Start a new game to enter the battle scene where the tower now has visible HP, heat, and ammo readouts. Clear a wave (or fall in battle) to enter the upgrade/letter flow and prepare for the next assault.
 
 ## Design Pillars
 

@@ -2,20 +2,24 @@ extends Node2D
 
 signal ammo_consumed(amount: int)
 signal overheated()
+signal health_changed(current: float, maximum: float)
+signal health_depleted()
 
-@warning_ignore("shadowed_global_identifier")
-@export var range: float = 120.0
+@export var attack_range: float = 120.0
 @export var attack_interval: float = 1.0
 @export var base_damage: float = 6.0
 @export var max_heat: float = 100.0
 @export var heat_increase_per_shot: float = 12.0
 @export var passive_cool_rate: float = 8.0
 @export var ammo: int = 10
+@export var max_health: float = 150.0
 
 var heat: float = 0.0
+var health: float = 0.0
 var _attack_timer: float = 0.0
 var _overheat_triggered: bool = false
 var _sprite: Sprite2D = null
+var _destroyed: bool = false
 
 func _ready() -> void:
     add_to_group("tower")
@@ -23,6 +27,9 @@ func _ready() -> void:
     _sprite = _find_sprite()
     if _sprite and _sprite.texture == null:
         _apply_placeholder_visual()
+    health = max_health
+    _destroyed = false
+    health_changed.emit(health, max_health)
     queue_redraw()
 
 func _process(delta: float) -> void:
@@ -55,7 +62,7 @@ func _apply_damage_to_enemies() -> void:
         var enemy := node as Node2D
         if enemy == null:
             continue
-        if enemy.global_position.distance_to(global_position) <= range:
+        if enemy.global_position.distance_to(global_position) <= attack_range:
             if enemy.has_method("take_damage"):
                 enemy.take_damage(base_damage)
 
@@ -74,15 +81,29 @@ func cool_by(amount: float) -> void:
     if heat < max_heat:
         _overheat_triggered = false
 
-func repair(_percent: float) -> void:
-    # Structural repairs are not implemented in the MVP.
-    pass
+func repair(percent: float) -> void:
+    if percent <= 0.0:
+        return
+    var heal_amount: float = max_health * percent
+    health = clamp(health + heal_amount, 0.0, max_health)
+    if health > 0.0:
+        _destroyed = false
+    health_changed.emit(health, max_health)
 
 func add_ammo(amount: int) -> void:
     ammo += amount
 
 func _draw() -> void:
-    draw_circle(Vector2.ZERO, range, Color(0.7, 0.7, 0.2, 0.2))
+    draw_circle(Vector2.ZERO, attack_range, Color(0.7, 0.7, 0.2, 0.2))
+
+func take_damage(amount: float) -> void:
+    if amount <= 0.0:
+        return
+    health = clamp(health - amount, 0.0, max_health)
+    health_changed.emit(health, max_health)
+    if health <= 0.0 and not _destroyed:
+        _destroyed = true
+        health_depleted.emit()
 
 func _apply_placeholder_visual() -> void:
     var gradient := GradientTexture2D.new()

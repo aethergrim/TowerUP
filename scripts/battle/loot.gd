@@ -26,6 +26,12 @@ func claim() -> void:
     claimed.emit(loot_type)
     queue_free()
 
+func set_loot_type(new_type: String) -> void:
+    loot_type = new_type
+
+func get_loot_type() -> String:
+    return loot_type
+
 func _ensure_placeholder_visual() -> void:
     var sprite := get_node_or_null("Sprite2D") as Sprite2D
     if sprite and sprite.texture == null:

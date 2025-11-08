@@ -11,9 +11,14 @@ func _ready() -> void:
 
 func _prepare_letter() -> void:
     var wave_index: int = 1
+    var last_victory: bool = true
     if Engine.has_singleton("GameManager"):
         wave_index = GameManager.current_wave + 1
-    _letter_text = "Custodian, wave %d awaits. Hold the tower." % wave_index
+        last_victory = GameManager.last_wave_victory
+    if last_victory:
+        _letter_text = "Custodian, wave %d awaits. Hold the tower." % wave_index
+    else:
+        _letter_text = "Repairs complete after the breach. Wave %d approaches." % wave_index
     letter_updated.emit(_letter_text)
 
 func get_letter_text() -> String:

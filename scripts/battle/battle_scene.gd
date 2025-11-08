@@ -15,6 +15,7 @@ var _collected_resources: Dictionary = {
     Constants.LOOT_METAL: 0,
     Constants.LOOT_ESSENCE: 0
 }
+var _tower_alive: bool = true
 
 func _ready() -> void:
     _reset_resources()
@@ -52,6 +53,11 @@ func _connect_signals() -> void:
         enemy_spawner.enemy_defeated.connect(_on_enemy_defeated)
     if enemy_spawner.has_signal("wave_cleared"):
         enemy_spawner.wave_cleared.connect(_on_wave_cleared)
+    if tower:
+        if tower.has_signal("health_depleted"):
+            tower.health_depleted.connect(_on_tower_destroyed)
+        if tower.has_signal("health_changed"):
+            tower.health_changed.connect(_on_tower_health_changed)
 
 func _begin_wave() -> void:
     var config: Dictionary = {
@@ -77,6 +83,7 @@ func _apply_pending_upgrades() -> void:
 func _reset_resources() -> void:
     _collected_resources[Constants.LOOT_METAL] = 0
     _collected_resources[Constants.LOOT_ESSENCE] = 0
+    _tower_alive = true
 
 func _on_enemy_defeated(_enemy: Node2D, tier: int, drop_position: Vector2) -> void:
     var loot_type: String = Constants.LOOT_METAL
@@ -106,8 +113,13 @@ func _on_cooling_requested(amount: float) -> void:
         tower.cool_by(amount)
 
 func _on_wave_cleared() -> void:
+    if not _tower_alive:
+        return
     if Engine.has_singleton("GameManager"):
-        GameManager.report_wave_complete(_collected_resources.duplicate())
+        GameManager.report_wave_complete({
+            "resources": _collected_resources.duplicate(),
+            "victory": true
+        })
 
 func _update_status_text() -> void:
     var wave_index: int = 1
@@ -116,6 +128,8 @@ func _update_status_text() -> void:
     var ammo_value: int = 0
     var heat_value: float = 0.0
     var max_heat: float = 0.0
+    var health_value: float = 0.0
+    var max_health: float = 0.0
     if tower:
         var ammo_variant = tower.get("ammo")
         if ammo_variant != null:
@@ -126,11 +140,31 @@ func _update_status_text() -> void:
         var max_heat_variant = tower.get("max_heat")
         if max_heat_variant != null:
             max_heat = float(max_heat_variant)
+        var health_variant = tower.get("health")
+        if health_variant != null:
+            health_value = float(health_variant)
+        var max_health_variant = tower.get("max_health")
+        if max_health_variant != null:
+            max_health = float(max_health_variant)
     var status := "Wave: %d\nAmmo: %d\nHeat: %.1f / %.1f" % [
         wave_index,
         ammo_value,
         heat_value,
         max_heat
     ]
+    if max_health > 0.0:
+        status += "\nHP: %.0f / %.0f" % [health_value, max_health]
     status_label.text = status
     hint_label.text = "LMB to Lasso | C to Cool | R to Repair | F1 Ammo Cheat | F2 Cool Cheat"
+
+func _on_tower_destroyed() -> void:
+    if _tower_alive:
+        _tower_alive = false
+        if Engine.has_singleton("GameManager"):
+            GameManager.report_wave_complete({
+                "resources": _collected_resources.duplicate(),
+                "victory": false
+            })
+
+func _on_tower_health_changed(_current: float, _maximum: float) -> void:
+    _update_status_text()
