@@ -31,7 +31,7 @@ func _refresh_letter() -> void:
         body_lines.append("[i]%s[/i]" % modifier)
     message_label.text = "\n".join(body_lines)
     if summary.is_empty():
-        var fallback_dirs_raw := data.get("directions", [])
+        var fallback_dirs_raw: Array = data.get("directions", [])
         var fallback_dirs: Array[int] = []
         for value in fallback_dirs_raw:
             fallback_dirs.append(int(value))
