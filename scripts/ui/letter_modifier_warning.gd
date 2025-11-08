@@ -1,6 +1,7 @@
 extends Control
 
 const Constants := preload("res://scripts/constants.gd")
+const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
 
 @onready var commander_label: Label = $MarginContainer/Panel/VBoxContainer/CommanderLabel
 @onready var message_label: RichTextLabel = $MarginContainer/Panel/VBoxContainer/MessageLabel
@@ -49,4 +50,4 @@ func _on_back_pressed() -> void:
     if Engine.has_singleton("GameManager"):
         GameManager.return_to_start_menu()
     else:
-        get_tree().change_scene_to_file(ProjectSettings.get_setting("run/main_scene"))
+        get_tree().change_scene_to_file(START_MENU_SCENE_PATH)
