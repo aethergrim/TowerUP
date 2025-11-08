@@ -1,21 +1,25 @@
-extends Control
+extends Node
 
-signal letter_presented(text: String)
-signal modifier_chosen(modifier: String)
+signal letter_updated(text: String)
+signal continue_requested()
 
-@export_multiline var default_letter: String = """Custodian,
-The siege continues. Prepare the tower.
-- General Voln"""
 
-var _current_letter: String = ""
-var _available_modifiers: Array[String] = []
+var _letter_text: String = ""
 
-func show_letter(letter_text: String, modifiers: Array[String]) -> void:
-    _current_letter = letter_text if letter_text != "" else default_letter
-    _available_modifiers = modifiers.duplicate()
-    letter_presented.emit(_current_letter)
+func _ready() -> void:
+    _prepare_letter()
 
-func choose_modifier(index: int) -> void:
-    if index < 0 or index >= _available_modifiers.size():
-        return
-    modifier_chosen.emit(_available_modifiers[index])
+func _prepare_letter() -> void:
+    var wave_index: int = 1
+    if Engine.has_singleton("GameManager"):
+        wave_index = GameManager.current_wave + 1
+    _letter_text = "Custodian, wave %d awaits. Hold the tower." % wave_index
+    letter_updated.emit(_letter_text)
+
+func get_letter_text() -> String:
+    return _letter_text
+
+func confirm() -> void:
+    continue_requested.emit()
+    if Engine.has_singleton("GameManager"):
+        GameManager.continue_to_next_wave()

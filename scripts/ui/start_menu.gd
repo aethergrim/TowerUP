@@ -36,7 +36,8 @@ func _ready() -> void:
     options_panel.visible = false
 
 func _on_campaign_pressed() -> void:
-    get_tree().change_scene_to_file("res://scenes/main_menu/LetterModifierWarning.tscn")
+    if Engine.has_singleton("GameManager"):
+        GameManager.start_new_game()
 
 func _on_quick_pressed() -> void:
     push_warning("Quick Skirmish is not implemented yet.")

@@ -1,37 +1,18 @@
 extends Node
 
-signal crafting_started(recipe: String)
-signal crafting_completed(recipe: String, result: Dictionary)
+const Constants := preload("res://scripts/constants.gd")
 
-@export var crafting_time: float = 3.0
+signal ammo_generated(amount: int)
+signal cooling_requested(amount: float)
 
-var _active_recipe: String = ""
-var _timer: float = 0.0
-var _is_active: bool = false
+@export var metal_to_ammo: int = 1
+@export var essence_cooling: float = 15.0
 
-func _ready() -> void:
-    set_process(true)
-
-func start_crafting(recipe: String) -> void:
-    if _is_active:
-        return
-    _active_recipe = recipe
-    _timer = 0.0
-    _is_active = true
-    crafting_started.emit(recipe)
-
-func _process(delta: float) -> void:
-    if not _is_active:
-        return
-    _timer += delta
-    if _timer >= crafting_time:
-        _complete_crafting()
-
-func _complete_crafting() -> void:
-    _is_active = false
-    var result: Dictionary = {
-        "recipe": _active_recipe,
-        "amount": 5
-    }
-    crafting_completed.emit(_active_recipe, result)
-    _active_recipe = ""
+func process_loot(loot_type: String) -> void:
+    match loot_type:
+        Constants.LOOT_METAL:
+            ammo_generated.emit(metal_to_ammo)
+        Constants.LOOT_ESSENCE:
+            cooling_requested.emit(essence_cooling)
+        _:
+            pass

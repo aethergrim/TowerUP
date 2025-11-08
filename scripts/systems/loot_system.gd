@@ -1,28 +1,38 @@
 extends Node2D
 
-signal loot_spawned(loot_id: String, position: Vector2)
-signal loot_claimed(loot_id: String)
+const Constants := preload("res://scripts/constants.gd")
 
-@export var loot_types: Array[String] = ["metal", "crystal", "essence"]
+signal loot_spawned(loot: Node2D)
+signal loot_claimed(loot_type: String)
 
-var active_loot: Array[Dictionary] = []
+@export var loot_scene: PackedScene = preload("res://scenes/battle/Loot.tscn")
 
-func spawn_loot(position: Vector2) -> void:
-    var loot_id: String = loot_types.pick_random()
-    var entry: Dictionary = {
-        "id": loot_id,
-        "position": position
-    }
-    active_loot.append(entry)
-    loot_spawned.emit(loot_id, position)
+var _active_loot: Array[Node2D] = []
 
-func claim_loot(loot_id: String) -> void:
-    for i in range(active_loot.size()):
-        var entry: Dictionary = active_loot[i]
-        if entry["id"] == loot_id:
-            active_loot.remove_at(i)
-            loot_claimed.emit(loot_id)
-            return
+func spawn_loot(global_position: Vector2, loot_type: String) -> void:
+    if loot_scene == null:
+        return
+    if loot_type.is_empty():
+        loot_type = Constants.LOOT_METAL
+    var loot_instance := loot_scene.instantiate() as Node2D
+    if loot_instance == null:
+        return
+    add_child(loot_instance)
+    loot_instance.global_position = global_position
+    if loot_instance.has_variable("loot_type"):
+        loot_instance.set("loot_type", loot_type)
+    if loot_instance.has_signal("claimed"):
+        loot_instance.connect("claimed", Callable(self, "_on_loot_claimed"))
+    _active_loot.append(loot_instance)
+    loot_spawned.emit(loot_instance)
 
-func clear_all() -> void:
-    active_loot.clear()
+func get_loot_nodes() -> Array[Node2D]:
+    return _active_loot.duplicate()
+
+func _on_loot_claimed(loot_type: String) -> void:
+    var remaining: Array[Node2D] = []
+    for loot in _active_loot:
+        if is_instance_valid(loot) and not loot.is_queued_for_deletion():
+            remaining.append(loot)
+    _active_loot = remaining
+    loot_claimed.emit(loot_type)

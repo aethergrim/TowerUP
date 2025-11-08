@@ -1,52 +1,89 @@
 extends Node2D
 
-signal loot_collected(loot_id: String)
-signal lasso_deployed()
-signal lasso_retracted()
+const Constants := preload("res://scripts/constants.gd")
 
-@export var max_length: float = 128.0
-@export var retract_speed: float = 220.0
-@export var deploy_speed: float = 240.0
+signal loot_collected(loot_type: String)
 
-var _current_length: float = 0.0
-var _is_deploying: bool = false
-var _origin_position: Vector2 = Vector2.ZERO
+enum State { IDLE, DEPLOY, RETRACT }
+
+@export var deploy_duration: float = 0.25
+@export var retract_duration: float = 0.25
+@export var capture_radius: float = 24.0
+
+var _state: State = State.IDLE
+var _progress: float = 0.0
+var _origin: Vector2 = Vector2.ZERO
+var _target: Vector2 = Vector2.ZERO
+var _current_tip: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
-    _origin_position = global_position
+    _origin = global_position
+    set_process(true)
+    set_process_input(true)
+    set_process_unhandled_input(true)
+
+func _process(delta: float) -> void:
+    match _state:
+        State.DEPLOY:
+            _progress += delta / max(deploy_duration, 0.001)
+            if _progress >= 1.0:
+                _progress = 1.0
+                _state = State.RETRACT
+            _update_tip_position()
+        State.RETRACT:
+            _progress -= delta / max(retract_duration, 0.001)
+            if _progress <= 0.0:
+                _progress = 0.0
+                _complete_retract()
+            _update_tip_position()
+        _:
+            pass
+    queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed("lasso_action"):
-        _start_lasso()
-    elif event.is_action_released("lasso_action"):
-        _finish_lasso()
+        _start_deploy()
+    elif event.is_action_released("lasso_action") and _state == State.DEPLOY:
+        _state = State.RETRACT
 
-func _process(delta: float) -> void:
-    if _is_deploying:
-        _current_length = clamp(_current_length + deploy_speed * delta, 0.0, max_length)
-        if _current_length >= max_length:
-            _trigger_collection()
-    elif _current_length > 0.0:
-        _current_length = max(_current_length - retract_speed * delta, 0.0)
-        if _current_length == 0.0:
-            lasso_retracted.emit()
-
-func _start_lasso() -> void:
-    if _is_deploying:
+func _start_deploy() -> void:
+    if _state != State.IDLE:
         return
-    _is_deploying = true
-    _current_length = 0.0
-    _origin_position = global_position
-    lasso_deployed.emit()
+    _origin = global_position
+    _target = get_global_mouse_position()
+    _current_tip = _origin
+    _progress = 0.0
+    _state = State.DEPLOY
 
-func _finish_lasso() -> void:
-    if not _is_deploying:
+func _complete_retract() -> void:
+    _state = State.IDLE
+    queue_redraw()
+    _capture_loot()
+
+func _update_tip_position() -> void:
+    _current_tip = _origin.lerp(_target, _progress)
+
+func _capture_loot() -> void:
+    var closest_loot: Node2D = null
+    var closest_distance: float = capture_radius
+    var loot_nodes: Array = get_tree().get_nodes_in_group("loot")
+    for node in loot_nodes:
+        var loot := node as Node2D
+        if loot == null:
+            continue
+        var distance: float = loot.global_position.distance_to(_target)
+        if distance <= closest_distance:
+            closest_loot = loot
+            closest_distance = distance
+    if closest_loot and closest_loot.has_method("claim"):
+        var loot_type: String = Constants.LOOT_METAL
+        if closest_loot.has_variable("loot_type"):
+            loot_type = String(closest_loot.get("loot_type"))
+        closest_loot.claim()
+        loot_collected.emit(loot_type)
+
+func _draw() -> void:
+    if _state == State.IDLE:
         return
-    _is_deploying = false
-    _trigger_collection()
-
-func _trigger_collection() -> void:
-    _is_deploying = false
-    _current_length = 0.0
-    lasso_retracted.emit()
-    loot_collected.emit("generic_resource")
+    draw_line(to_local(_origin), to_local(_current_tip), Color(0.9, 0.9, 0.5), 2.0)
+    draw_circle(to_local(_target), capture_radius, Color(0.8, 0.8, 0.2, 0.15))
