@@ -2,6 +2,7 @@ extends Node
 
 const Constants := preload("res://scripts/constants.gd")
 
+const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
 const BATTLE_SCENE_PATH := "res://scenes/battle/BattleScene.tscn"
 const UPGRADE_SCENE_PATH := "res://scenes/upgrade/UpgradeScene.tscn"
 const LETTER_SCENE_PATH := "res://scenes/main_menu/LetterModifierWarning.tscn"
@@ -112,8 +113,7 @@ func on_loading_complete() -> void:
     show_letter_scene()
 
 func return_to_start_menu() -> void:
-    var main_scene_path := String(ProjectSettings.get_setting("run/main_scene"))
-    _change_scene(main_scene_path)
+    _change_scene(START_MENU_SCENE_PATH)
 
 func _ensure_wave_logic() -> void:
     if _wave_logic == null:
@@ -141,6 +141,11 @@ func _add_key_to_action(action_name: String, keycode: Key) -> void:
         InputMap.action_add_event(action_name, event)
 
 func _change_scene(path: String) -> void:
+    if path.is_empty():
+        push_warning("Attempted to change to an empty scene path.")
+        return
     var scene: PackedScene = load(path)
     if scene:
         get_tree().change_scene_to_packed(scene)
+    else:
+        push_warning("Failed to load scene: %s" % path)
