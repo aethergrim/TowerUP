@@ -17,81 +17,81 @@ var _overheat_triggered: bool = false
 var _sprite: Sprite2D = null
 
 func _ready() -> void:
-    set_process(true)
-    _sprite = _find_sprite()
-    if _sprite and _sprite.texture == null:
-        _apply_placeholder_visual()
+	set_process(true)
+	_sprite = _find_sprite()
+	if _sprite and _sprite.texture == null:
+		_apply_placeholder_visual()
 
 func _process(delta: float) -> void:
-    _attack_timer += delta
-    _cool_down(delta)
-    if _attack_timer >= attack_interval:
-        _attempt_attack()
+	_attack_timer += delta
+	_cool_down(delta)
+	if _attack_timer >= attack_interval:
+		_attempt_attack()
 
 func _attempt_attack() -> void:
-    if ammo <= 0:
-        return
-    if heat >= max_heat:
-        if not _overheat_triggered:
-            overheated.emit()
-            _overheat_triggered = true
-        return
-    _attack_timer = 0.0
-    ammo -= 1
-    ammo_consumed.emit(1)
-    heat = min(max_heat, heat + heat_increase_per_shot)
-    if heat >= max_heat and not _overheat_triggered:
-        overheated.emit()
-        _overheat_triggered = true
-    _apply_damage_to_enemies()
-    queue_redraw()
+	if ammo <= 0:
+		return
+	if heat >= max_heat:
+		if not _overheat_triggered:
+			overheated.emit()
+			_overheat_triggered = true
+		return
+	_attack_timer = 0.0
+	ammo -= 1
+	ammo_consumed.emit(1)
+	heat = min(max_heat, heat + heat_increase_per_shot)
+	if heat >= max_heat and not _overheat_triggered:
+		overheated.emit()
+		_overheat_triggered = true
+	_apply_damage_to_enemies()
+	queue_redraw()
 
 func _apply_damage_to_enemies() -> void:
-    var enemies: Array = get_tree().get_nodes_in_group("enemies")
-    for node in enemies:
-        var enemy := node as Node2D
-        if enemy == null:
-            continue
-        if enemy.global_position.distance_to(global_position) <= range:
-            if enemy.has_method("take_damage"):
-                enemy.take_damage(base_damage)
+	var enemies: Array = get_tree().get_nodes_in_group("enemies")
+	for node in enemies:
+		var enemy := node as Node2D
+		if enemy == null:
+			continue
+		if enemy.global_position.distance_to(global_position) <= range:
+			if enemy.has_method("take_damage"):
+				enemy.take_damage(base_damage)
 
 func _cool_down(delta: float) -> void:
-    if heat <= 0.0:
-        heat = 0.0
-        if _overheat_triggered and heat < max_heat:
-            _overheat_triggered = false
-        return
-    heat = max(0.0, heat - passive_cool_rate * delta)
-    if heat < max_heat:
-        _overheat_triggered = false
+	if heat <= 0.0:
+		heat = 0.0
+		if _overheat_triggered and heat < max_heat:
+			_overheat_triggered = false
+		return
+	heat = max(0.0, heat - passive_cool_rate * delta)
+	if heat < max_heat:
+		_overheat_triggered = false
 
 func cool_by(amount: float) -> void:
-    heat = max(0.0, heat - amount)
-    if heat < max_heat:
-        _overheat_triggered = false
+	heat = max(0.0, heat - amount)
+	if heat < max_heat:
+		_overheat_triggered = false
 
 func repair(percent: float) -> void:
-    # Structural repairs are not implemented in the MVP.
-    pass
+	# Structural repairs are not implemented in the MVP.
+	pass
 
 func add_ammo(amount: int) -> void:
-    ammo += amount
+	ammo += amount
 
 func _draw() -> void:
-    draw_circle(Vector2.ZERO, range, Color(0.7, 0.7, 0.2, 0.2))
+	draw_circle(Vector2.ZERO, range, Color(0.7, 0.7, 0.2, 0.2))
 
 func _apply_placeholder_visual() -> void:
-    var gradient := GradientTexture2D.new()
-    gradient.width = 8
-    var grad := Gradient.new()
-    grad.colors = PackedColorArray([Color(0.6, 0.7, 0.9), Color(0.2, 0.3, 0.6)])
-    gradient.gradient = grad
-    _sprite.texture = gradient
+	var gradient := GradientTexture2D.new()
+	gradient.width = 8
+	var grad := Gradient.new()
+	grad.colors = PackedColorArray([Color(0.6, 0.7, 0.9), Color(0.2, 0.3, 0.6)])
+	gradient.gradient = grad
+	_sprite.texture = gradient
 
 func _find_sprite() -> Sprite2D:
-    for child in get_children():
-        var sprite := child as Sprite2D
-        if sprite:
-            return sprite
-    return null
+	for child in get_children():
+		var sprite := child as Sprite2D
+		if sprite:
+			return sprite
+	return null
