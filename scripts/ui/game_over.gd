@@ -5,7 +5,7 @@ const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
 @onready var return_button: Button = $Panel/MarginContainer/VBoxContainer/ReturnButton
 
 func _ready() -> void:
-    pause_mode = Node.PAUSE_MODE_PROCESS
+    process_mode = Node.PROCESS_MODE_ALWAYS
     visible = false
     if return_button:
         return_button.pressed.connect(_on_return_pressed)
