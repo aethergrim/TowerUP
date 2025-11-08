@@ -26,11 +26,15 @@ func generate_wave(wave_index: int, last_victory: bool) -> Dictionary:
     var modifier: String = _pick_modifier(wave_index)
     var intro := _compose_intro(commander_info, wave_index, last_victory)
     var summary := _summarize_wave(spawn_dirs, tier_counts)
+    var total_enemies: int = 0
+    for value in tier_counts.values():
+        total_enemies += int(value)
     return {
         "config": {
             "spawn_dirs": spawn_dirs,
             "count_by_tier": tier_counts,
-            "modifier": modifier
+            "modifier": modifier,
+            "max_enemies": total_enemies
         },
         "letter": {
             "commander": commander_info.get("name", "Unknown Commander"),

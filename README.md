@@ -13,7 +13,8 @@ res://
 │   │   ├── BattleScene.tscn         # Active wave gameplay with camera + HUD
 │   │   ├── Tower.tscn               # Tower core scene with health/heat logic
 │   │   ├── Enemy.tscn               # Generic enemy body used by the spawner tiers
-│   │   └── Loot.tscn                # Collectable resources spawned on enemy defeat
+│   │   ├── Loot.tscn                # Collectable resources spawned on enemy defeat
+│   │   └── GameOver.tscn            # Overlay shown when the tower is destroyed
 │   ├── main_menu/StartMenu.tscn     # Campaign/Skirmish entry with options and quit controls
 │   ├── main_menu/LoadingScreen.tscn # Preloads core scenes before the siege begins
 │   ├── main_menu/LetterModifierWarning.tscn  # Wave briefing with commander + modifier details

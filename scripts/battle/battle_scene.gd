@@ -11,6 +11,7 @@ const Constants := preload("res://scripts/constants.gd")
 @onready var status_label: Label = $HUD/MarginContainer/VBoxContainer/StatusLabel
 @onready var hint_label: Label = $HUD/MarginContainer/VBoxContainer/HintLabel
 @onready var debug_end_button: Button = $HUD/MarginContainer/VBoxContainer/DebugEndButton
+@onready var game_over_ui: Control = $GameOver
 
 var _collected_resources: Dictionary = {
     Constants.LOOT_METAL: 0,
@@ -18,8 +19,12 @@ var _collected_resources: Dictionary = {
 }
 var _tower_alive: bool = true
 var _wave_reported: bool = false
+var _game_over_active: bool = false
 
 func _ready() -> void:
+    var tree := get_tree()
+    if tree:
+        tree.paused = false
     _reset_resources()
     if tower and repair_heat_system.has_method("register_tower"):
         repair_heat_system.register_tower(tower)
@@ -31,6 +36,8 @@ func _ready() -> void:
     _update_status_text()
     if debug_end_button:
         debug_end_button.pressed.connect(_on_debug_end_pressed)
+    if game_over_ui and game_over_ui.has_method("hide_game_over"):
+        game_over_ui.hide_game_over()
 
 func _process(_delta: float) -> void:
     _update_status_text()
@@ -89,6 +96,9 @@ func _reset_resources() -> void:
     _collected_resources[Constants.LOOT_ESSENCE] = 0
     _tower_alive = true
     _wave_reported = false
+    _game_over_active = false
+    if debug_end_button:
+        debug_end_button.disabled = false
 
 func _on_enemy_defeated(_enemy: Node2D, tier: int, drop_world_position: Vector2) -> void:
     var loot_type: String = Constants.LOOT_METAL
@@ -159,9 +169,17 @@ func _update_status_text() -> void:
     hint_label.text = "Lasso: LMB | Cool: C | Repair: R | Cheats: F1 Ammo / F2 Cool"
 
 func _on_tower_destroyed() -> void:
-    if _tower_alive:
-        _tower_alive = false
-        _finish_wave(false)
+    if not _tower_alive or _game_over_active:
+        return
+    _tower_alive = false
+    _game_over_active = true
+    if debug_end_button:
+        debug_end_button.disabled = true
+    if enemy_spawner.has_method("cancel_spawning"):
+        enemy_spawner.cancel_spawning()
+    if game_over_ui and game_over_ui.has_method("show_game_over"):
+        game_over_ui.show_game_over()
+    _wave_reported = true
 
 func _on_tower_health_changed(_current: float, _maximum: float) -> void:
     _update_status_text()
