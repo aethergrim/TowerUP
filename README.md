@@ -10,8 +10,10 @@ res://
 ├── project.godot           # Godot project configuration (autoload + inputs)
 ├── scenes/
 │   ├── battle/BattleScene.tscn      # Active wave gameplay (tower, enemies, lasso, loot)
-│   ├── main_menu/MainMenu.tscn      # Entry point with start/quit controls
+│   ├── main_menu/StartMenu.tscn     # Campaign/Skirmish entry with options and quit controls
+│   ├── main_menu/LetterModifierWarning.tscn  # Narrative letter prompt before waves
 │   └── upgrade/UpgradeScene.tscn    # Intermission letter + upgrade selection
+├── mobs/                            # Enemy archetype folders and texture stubs
 └── scripts/
     ├── battle/battle_scene.gd       # Coordinates battle systems and wave flow
     ├── game_manager.gd              # Autoload singleton handling waves/resources
