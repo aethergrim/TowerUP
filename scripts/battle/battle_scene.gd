@@ -78,14 +78,14 @@ func _reset_resources() -> void:
     _collected_resources[Constants.LOOT_METAL] = 0
     _collected_resources[Constants.LOOT_ESSENCE] = 0
 
-func _on_enemy_defeated(_enemy: Node2D, tier: int, position: Vector2) -> void:
+func _on_enemy_defeated(_enemy: Node2D, tier: int, drop_position: Vector2) -> void:
     var loot_type: String = Constants.LOOT_METAL
     if tier == Constants.EnemyTier.RUSHER:
         loot_type = Constants.LOOT_ESSENCE
     elif tier == Constants.EnemyTier.TANK:
         loot_type = Constants.LOOT_METAL
     if loot_system.has_method("spawn_loot"):
-        loot_system.spawn_loot(position, loot_type)
+        loot_system.spawn_loot(drop_position, loot_type)
 
 func _on_lasso_loot_collected(loot_type: String) -> void:
     if crafting_system.has_method("process_loot"):

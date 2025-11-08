@@ -9,7 +9,7 @@ signal loot_claimed(loot_type: String)
 
 var _active_loot: Array[Node2D] = []
 
-func spawn_loot(global_position: Vector2, loot_type: String) -> void:
+func spawn_loot(spawn_position: Vector2, loot_type: String) -> void:
     if loot_scene == null:
         return
     if loot_type.is_empty():
@@ -18,7 +18,7 @@ func spawn_loot(global_position: Vector2, loot_type: String) -> void:
     if loot_instance == null:
         return
     add_child(loot_instance)
-    loot_instance.global_position = global_position
+    loot_instance.global_position = spawn_position
     if loot_instance.has_variable("loot_type"):
         loot_instance.set("loot_type", loot_type)
     if loot_instance.has_signal("claimed"):

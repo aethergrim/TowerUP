@@ -27,7 +27,7 @@ func _ready() -> void:
     if Engine.is_editor_hint():
         ProjectSettings.set_setting("run/window/embedded", false)
     campaign_button.pressed.connect(_on_campaign_pressed)
-    quick_button.visible = false
+    quick_button.pressed.connect(_on_quick_pressed)
     options_button.pressed.connect(_on_options_pressed)
     quit_button.pressed.connect(_on_quit_pressed)
     close_options_button.pressed.connect(_on_close_options_pressed)
@@ -38,6 +38,10 @@ func _ready() -> void:
     options_panel.visible = false
 
 func _on_campaign_pressed() -> void:
+    if Engine.has_singleton("GameManager"):
+        GameManager.start_new_game()
+
+func _on_quick_pressed() -> void:
     if Engine.has_singleton("GameManager"):
         GameManager.start_new_game()
 

@@ -3,6 +3,7 @@ extends Node2D
 signal ammo_consumed(amount: int)
 signal overheated()
 
+@warning_ignore("shadowed_global_identifier")
 @export var range: float = 120.0
 @export var attack_interval: float = 1.0
 @export var base_damage: float = 6.0
@@ -17,10 +18,12 @@ var _overheat_triggered: bool = false
 var _sprite: Sprite2D = null
 
 func _ready() -> void:
+    add_to_group("tower")
     set_process(true)
     _sprite = _find_sprite()
     if _sprite and _sprite.texture == null:
         _apply_placeholder_visual()
+    queue_redraw()
 
 func _process(delta: float) -> void:
     _attack_timer += delta
@@ -67,11 +70,11 @@ func _cool_down(delta: float) -> void:
         _overheat_triggered = false
 
 func cool_by(amount: float) -> void:
-    heat = max(0.0, heat - amount)
+    heat = clamp(heat - amount, 0.0, max_heat)
     if heat < max_heat:
         _overheat_triggered = false
 
-func repair(percent: float) -> void:
+func repair(_percent: float) -> void:
     # Structural repairs are not implemented in the MVP.
     pass
 

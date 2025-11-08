@@ -28,7 +28,10 @@ func start_wave(config: Dictionary) -> void:
         wave_cleared.emit()
         return
     wave_started.emit()
-    var spawn_dirs: Array[int] = config.get("spawn_dirs", [])
+    var spawn_dirs: Array[int] = []
+    var raw_dirs = config.get("spawn_dirs", [])
+    for value in raw_dirs:
+        spawn_dirs.append(int(value))
     if spawn_dirs.is_empty():
         spawn_dirs = [Constants.Dir.W]
     var count_by_tier: Dictionary = config.get("count_by_tier", {})
