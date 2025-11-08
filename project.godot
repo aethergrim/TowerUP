@@ -1,0 +1,30 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format: https://docs.godotengine.org/en/stable/classes/class_projectsettings.html#class-projectsettings-method-save
+
+config_version=5
+
+[application]
+config/name="TowerUP"
+run/main_scene="res://scenes/main_menu/StartMenu.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+
+[autoload]
+GameManager="*res://scripts/game_manager.gd"
+
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/size/window_width=640
+window/size/window_height=360
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[input]
+lasso_action={"deadzone": 0.5, "events": [{"button_index": 1, "device": -1, "type": "joy_button"}, {"device": -1, "index": 0, "type": "mouse_button"}]}
+cool_action={"deadzone": 0.5, "events": [{"device": -1, "physical_keycode": 67, "type": "key"}]}
+repair_action={"deadzone": 0.5, "events": [{"device": -1, "physical_keycode": 82, "type": "key"}]}
+confirm={"deadzone": 0.5, "events": [{"device": -1, "button_index": 1, "type": "joy_button"}, {"device": -1, "physical_keycode": 4194309, "type": "key"}]}
+cancel={"deadzone": 0.5, "events": [{"device": -1, "button_index": 2, "type": "joy_button"}, {"device": -1, "physical_keycode": 4194310, "type": "key"}]}
