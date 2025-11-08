@@ -47,7 +47,7 @@ func generate_wave(wave_index: int, last_victory: bool) -> Dictionary:
 func _select_spawn_dirs(wave_index: int) -> Array[int]:
     var directions: Array[int] = [Constants.Dir.N, Constants.Dir.E, Constants.Dir.S, Constants.Dir.W]
     directions.shuffle()
-    var dir_count: int = clamp(1 + wave_index / 3, 1, directions.size())
+    var dir_count: int = clamp(1 + int(wave_index / 3.0), 1, directions.size())
     var chosen: Array[int] = []
     for index in range(dir_count):
         chosen.append(int(directions[index]))
@@ -56,8 +56,8 @@ func _select_spawn_dirs(wave_index: int) -> Array[int]:
 func _build_tier_counts(wave_index: int) -> Dictionary:
     var result: Dictionary = {}
     var base_total: int = 5 + wave_index * 2
-    var rushers: int = max(0, wave_index / 2)
-    var tanks: int = max(0, wave_index / 3)
+    var rushers: int = max(0, int(wave_index / 2.0))
+    var tanks: int = max(0, int(wave_index / 3.0))
     var grunts: int = max(3, base_total - rushers - tanks)
     result[Constants.EnemyTier.GRUNT] = grunts
     if rushers > 0:

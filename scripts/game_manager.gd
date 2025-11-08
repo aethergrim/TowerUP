@@ -127,14 +127,14 @@ func _prepare_wave_data() -> void:
 func _configure_input_map() -> void:
     _ensure_action("cool_action")
     _ensure_action("repair_action")
-    _add_key_to_action("cool_action", KEY_C)
-    _add_key_to_action("repair_action", KEY_R)
+    _add_key_to_action("cool_action", Key.KEY_C)
+    _add_key_to_action("repair_action", Key.KEY_R)
 
 func _ensure_action(action_name: String) -> void:
     if not InputMap.has_action(action_name):
         InputMap.add_action(action_name)
 
-func _add_key_to_action(action_name: String, keycode: int) -> void:
+func _add_key_to_action(action_name: String, keycode: Key) -> void:
     var event := InputEventKey.new()
     event.physical_keycode = keycode
     if not InputMap.action_has_event(action_name, event):

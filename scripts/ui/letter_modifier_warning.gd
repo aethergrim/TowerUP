@@ -31,10 +31,13 @@ func _refresh_letter() -> void:
         body_lines.append("[i]%s[/i]" % modifier)
     message_label.text = "\n".join(body_lines)
     if summary.is_empty():
-        var fallback_dirs := data.get("directions", [])
+        var fallback_dirs_raw := data.get("directions", [])
+        var fallback_dirs: Array[int] = []
+        for value in fallback_dirs_raw:
+            fallback_dirs.append(int(value))
         var fallback_texts: Array[String] = []
         for value in fallback_dirs:
-            fallback_texts.append(Constants.get_direction_name(int(value)))
+            fallback_texts.append(Constants.get_direction_name(value))
         summary = "Attacks expected from %s." % ", ".join(fallback_texts)
     summary_label.text = summary
 
