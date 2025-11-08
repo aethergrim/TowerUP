@@ -4,6 +4,10 @@ const Constants := preload("res://scripts/constants.gd")
 
 const BATTLE_SCENE_PATH := "res://scenes/battle/BattleScene.tscn"
 const UPGRADE_SCENE_PATH := "res://scenes/upgrade/UpgradeScene.tscn"
+const LETTER_SCENE_PATH := "res://scenes/main_menu/LetterModifierWarning.tscn"
+const LOADING_SCENE_PATH := "res://scenes/main_menu/LoadingScreen.tscn"
+
+const WaveLogic := preload("res://scripts/systems/wave_logic.gd")
 
 var current_wave: int = 1
 var resources: Dictionary = {
@@ -18,9 +22,14 @@ var current_config: Dictionary = {
 var pending_ammo: int = 0
 var pending_cooling: float = 0.0
 var last_wave_victory: bool = true
+var current_wave_data: Dictionary = {}
+
+var _wave_logic: Node = null
 
 func _ready() -> void:
-    current_config = _make_wave_config(current_wave)
+    _configure_input_map()
+    _ensure_wave_logic()
+    _prepare_wave_data()
 
 func start_new_game() -> void:
     current_wave = 1
@@ -31,12 +40,15 @@ func start_new_game() -> void:
     pending_ammo = 0
     pending_cooling = 0.0
     last_wave_victory = true
-    current_config = _make_wave_config(current_wave)
-    _change_scene(BATTLE_SCENE_PATH)
+    _prepare_wave_data()
+    _change_scene(LOADING_SCENE_PATH)
 
 func continue_to_next_wave() -> void:
     current_wave += 1
-    current_config = _make_wave_config(current_wave)
+    _prepare_wave_data()
+    show_letter_scene()
+
+func enter_battle() -> void:
     _change_scene(BATTLE_SCENE_PATH)
 
 func report_wave_complete(result: Dictionary) -> void:
@@ -57,6 +69,9 @@ func report_wave_complete(result: Dictionary) -> void:
 
 func get_current_wave_config() -> Dictionary:
     return current_config.duplicate(true)
+
+func get_current_letter_data() -> Dictionary:
+    return current_wave_data.get("letter", {}).duplicate(true)
 
 func get_resources() -> Dictionary:
     return resources.duplicate(true)
@@ -90,23 +105,40 @@ func consume_pending_cooling() -> float:
     pending_cooling = 0.0
     return amount
 
-func _make_wave_config(wave: int) -> Dictionary:
-    var spawn_dirs: Array[int] = []
-    if wave <= 3:
-        spawn_dirs = [Constants.Dir.W]
-    else:
-        spawn_dirs = [Constants.Dir.W, Constants.Dir.N]
-    var count_by_tier: Dictionary = {}
-    count_by_tier[Constants.EnemyTier.GRUNT] = 4 + wave
-    var rusher_count: int = max(0, wave - 3)
-    if rusher_count > 0:
-        count_by_tier[Constants.EnemyTier.RUSHER] = rusher_count
-    count_by_tier[Constants.EnemyTier.TANK] = max(0, wave - 5)
-    return {
-        "spawn_dirs": spawn_dirs,
-        "count_by_tier": count_by_tier,
-        "modifier": null
-    }
+func show_letter_scene() -> void:
+    _change_scene(LETTER_SCENE_PATH)
+
+func on_loading_complete() -> void:
+    show_letter_scene()
+
+func return_to_start_menu() -> void:
+    var main_scene_path := String(ProjectSettings.get_setting("run/main_scene"))
+    _change_scene(main_scene_path)
+
+func _ensure_wave_logic() -> void:
+    if _wave_logic == null:
+        _wave_logic = WaveLogic.new()
+
+func _prepare_wave_data() -> void:
+    _ensure_wave_logic()
+    current_wave_data = _wave_logic.generate_wave(current_wave, last_wave_victory)
+    current_config = current_wave_data.get("config", current_config).duplicate(true)
+
+func _configure_input_map() -> void:
+    _ensure_action("cool_action")
+    _ensure_action("repair_action")
+    _add_key_to_action("cool_action", KEY_C)
+    _add_key_to_action("repair_action", KEY_R)
+
+func _ensure_action(action_name: String) -> void:
+    if not InputMap.has_action(action_name):
+        InputMap.add_action(action_name)
+
+func _add_key_to_action(action_name: String, keycode: int) -> void:
+    var event := InputEventKey.new()
+    event.physical_keycode = keycode
+    if not InputMap.action_has_event(action_name, event):
+        InputMap.action_add_event(action_name, event)
 
 func _change_scene(path: String) -> void:
     var scene: PackedScene = load(path)

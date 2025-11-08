@@ -72,4 +72,8 @@ text = "Wave: 1\nAmmo: 0\nHeat: 0 / 0"
 
 [node name="HintLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Hints"
+text = "Lasso: LMB | Cool: C | Repair: R"
+
+[node name="DebugEndButton" type="Button" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "DEBUG: End Wave"

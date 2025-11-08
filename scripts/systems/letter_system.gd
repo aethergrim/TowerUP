@@ -26,5 +26,3 @@ func get_letter_text() -> String:
 
 func confirm() -> void:
     continue_requested.emit()
-    if Engine.has_singleton("GameManager"):
-        GameManager.continue_to_next_wave()

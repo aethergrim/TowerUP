@@ -15,21 +15,22 @@ res://
 │   │   ├── Enemy.tscn               # Generic enemy body used by the spawner tiers
 │   │   └── Loot.tscn                # Collectable resources spawned on enemy defeat
 │   ├── main_menu/StartMenu.tscn     # Campaign/Skirmish entry with options and quit controls
-│   ├── main_menu/LetterModifierWarning.tscn  # Narrative letter prompt before waves
+│   ├── main_menu/LoadingScreen.tscn # Preloads core scenes before the siege begins
+│   ├── main_menu/LetterModifierWarning.tscn  # Wave briefing with commander + modifier details
 │   └── upgrade/UpgradeScene.tscn    # Intermission letter + upgrade selection
 ├── mobs/                            # Enemy archetype folders and texture stubs
 └── scripts/
     ├── battle/battle_scene.gd       # Coordinates battle systems, tower state, and wave flow
-    ├── game_manager.gd              # Autoload singleton handling waves/resources
-    ├── systems/                     # Modular gameplay systems (tower, lasso, loot, etc.)
-    └── ui/                          # UI logic for menu and upgrade scenes
+    ├── game_manager.gd              # Autoload singleton handling waves/resources and scene flow
+    ├── systems/                     # Modular gameplay systems (tower, lasso, loot, wave logic, etc.)
+    └── ui/                          # UI logic for menu, loading, and upgrade scenes
 ```
 
 ## Getting Started
 
 1. Open the project in Godot 4.4.1.
 2. Ensure `GameManager` is registered as an autoload (configured in `project.godot`).
-3. Run the project — the main menu loads first. Start a new game to enter the battle scene where the tower now has visible HP, heat, and ammo readouts. Clear a wave (or fall in battle) to enter the upgrade/letter flow and prepare for the next assault.
+3. Run the project — the main menu loads first. Starting a new campaign shows a loading screen, then a letter briefing that previews the incoming commander, modifiers, and spawn directions. Proceed to the battle, survive or fall, then collect upgrades before preparing the next randomized wave.
 
 ## Design Pillars
 

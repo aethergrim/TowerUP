@@ -79,7 +79,7 @@ func _capture_loot() -> void:
         var loot_type: String = Constants.LOOT_METAL
         if closest_loot.has_method("get_loot_type"):
             loot_type = String(closest_loot.get_loot_type())
-        elif closest_loot.has_method("get"):
+        else:
             loot_type = String(closest_loot.get("loot_type"))
         closest_loot.claim()
         loot_collected.emit(loot_type)

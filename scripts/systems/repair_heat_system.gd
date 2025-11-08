@@ -24,8 +24,7 @@ func perform_repair() -> void:
         _tower.repair(repair_percent)
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event is InputEventKey and event.pressed:
-        if event.keycode == KEY_C:
-            perform_cooling()
-        elif event.keycode == KEY_R:
-            perform_repair()
+    if event.is_action_pressed("cool_action"):
+        perform_cooling()
+    elif event.is_action_pressed("repair_action"):
+        perform_repair()

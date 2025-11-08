@@ -62,3 +62,7 @@ text = "Convert 3 Essence → Cool 30"
 [node name="ContinueButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Prepare the Next Wave"
+
+[node name="AbandonButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Abandon Tower"

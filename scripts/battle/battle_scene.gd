@@ -10,12 +10,14 @@ const Constants := preload("res://scripts/constants.gd")
 @onready var repair_heat_system: Node = $RepairHeatSystem
 @onready var status_label: Label = $HUD/MarginContainer/VBoxContainer/StatusLabel
 @onready var hint_label: Label = $HUD/MarginContainer/VBoxContainer/HintLabel
+@onready var debug_end_button: Button = $HUD/MarginContainer/VBoxContainer/DebugEndButton
 
 var _collected_resources: Dictionary = {
     Constants.LOOT_METAL: 0,
     Constants.LOOT_ESSENCE: 0
 }
 var _tower_alive: bool = true
+var _wave_reported: bool = false
 
 func _ready() -> void:
     _reset_resources()
@@ -27,6 +29,8 @@ func _ready() -> void:
     _apply_pending_upgrades()
     _begin_wave()
     _update_status_text()
+    if debug_end_button:
+        debug_end_button.pressed.connect(_on_debug_end_pressed)
 
 func _process(_delta: float) -> void:
     _update_status_text()
@@ -84,15 +88,16 @@ func _reset_resources() -> void:
     _collected_resources[Constants.LOOT_METAL] = 0
     _collected_resources[Constants.LOOT_ESSENCE] = 0
     _tower_alive = true
+    _wave_reported = false
 
-func _on_enemy_defeated(_enemy: Node2D, tier: int, drop_position: Vector2) -> void:
+func _on_enemy_defeated(_enemy: Node2D, tier: int, drop_world_position: Vector2) -> void:
     var loot_type: String = Constants.LOOT_METAL
     if tier == Constants.EnemyTier.RUSHER:
         loot_type = Constants.LOOT_ESSENCE
     elif tier == Constants.EnemyTier.TANK:
         loot_type = Constants.LOOT_METAL
     if loot_system.has_method("spawn_loot"):
-        loot_system.spawn_loot(drop_position, loot_type)
+        loot_system.spawn_loot(drop_world_position, loot_type)
 
 func _on_lasso_loot_collected(loot_type: String) -> void:
     if crafting_system.has_method("process_loot"):
@@ -113,13 +118,9 @@ func _on_cooling_requested(amount: float) -> void:
         tower.cool_by(amount)
 
 func _on_wave_cleared() -> void:
-    if not _tower_alive:
+    if not _tower_alive or _wave_reported:
         return
-    if Engine.has_singleton("GameManager"):
-        GameManager.report_wave_complete({
-            "resources": _collected_resources.duplicate(),
-            "victory": true
-        })
+    _finish_wave(true)
 
 func _update_status_text() -> void:
     var wave_index: int = 1
@@ -155,16 +156,26 @@ func _update_status_text() -> void:
     if max_health > 0.0:
         status += "\nHP: %.0f / %.0f" % [health_value, max_health]
     status_label.text = status
-    hint_label.text = "LMB to Lasso | C to Cool | R to Repair | F1 Ammo Cheat | F2 Cool Cheat"
+    hint_label.text = "Lasso: LMB | Cool: C | Repair: R | Cheats: F1 Ammo / F2 Cool"
 
 func _on_tower_destroyed() -> void:
     if _tower_alive:
         _tower_alive = false
-        if Engine.has_singleton("GameManager"):
-            GameManager.report_wave_complete({
-                "resources": _collected_resources.duplicate(),
-                "victory": false
-            })
+        _finish_wave(false)
 
 func _on_tower_health_changed(_current: float, _maximum: float) -> void:
     _update_status_text()
+
+func _on_debug_end_pressed() -> void:
+    if _tower_alive and not _wave_reported:
+        _finish_wave(true)
+
+func _finish_wave(victory: bool) -> void:
+    if _wave_reported:
+        return
+    _wave_reported = true
+    if Engine.has_singleton("GameManager"):
+        GameManager.report_wave_complete({
+            "resources": _collected_resources.duplicate(),
+            "victory": victory
+        })
