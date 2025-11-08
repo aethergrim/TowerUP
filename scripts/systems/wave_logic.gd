@@ -46,7 +46,7 @@ func generate_wave(wave_index: int, last_victory: bool) -> Dictionary:
 
 func _select_spawn_dirs(wave_index: int) -> Array[int]:
     var directions: Array[int] = [Constants.Dir.N, Constants.Dir.E, Constants.Dir.S, Constants.Dir.W]
-    _rng.shuffle(directions)
+    directions.shuffle()
     var dir_count: int = clamp(1 + wave_index / 3, 1, directions.size())
     var chosen: Array[int] = []
     for index in range(dir_count):
