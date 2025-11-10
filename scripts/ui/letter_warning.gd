@@ -2,7 +2,7 @@ extends Control
 
 const Constants := preload("res://scripts/constants.gd")
 const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
-const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+const AutoloadUtilsConst := preload("res://scripts/utils/autoload_utils.gd")
 const GameManagerScript := preload("res://scripts/singletons/GameManager.gd")
 
 @onready var commander_label: Label = $MarginContainer/Panel/VBoxContainer/CommanderLabel
@@ -20,7 +20,7 @@ func _ready() -> void:
     _prepare_letter()
 
 func _prepare_letter() -> void:
-    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    var manager_node := AutoloadUtilsConst.get_autoload("GameManager")
     if not (manager_node is GameManagerScript):
         _populate_fallback_text()
         return
@@ -67,7 +67,7 @@ func _populate_fallback_text() -> void:
 
 func _on_proceed_pressed() -> void:
     print("[LetterWarning] PROCEED pressed")
-    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    var manager_node := AutoloadUtilsConst.get_autoload("GameManager")
     if manager_node is GameManagerScript:
         var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.enter_battle()
@@ -82,7 +82,7 @@ func _on_proceed_pressed() -> void:
 
 func _on_back_pressed() -> void:
     print("[LetterWarning] BACK pressed")
-    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    var manager_node := AutoloadUtilsConst.get_autoload("GameManager")
     if manager_node is GameManagerScript:
         var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.enter_upgrade()

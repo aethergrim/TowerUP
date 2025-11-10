@@ -1,7 +1,7 @@
 extends Node2D
 
 const Constants := preload("res://scripts/constants.gd")
-const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+const AutoloadUtilsConst := preload("res://scripts/utils/autoload_utils.gd")
 const GameManagerScript := preload("res://scripts/singletons/GameManager.gd")
 
 @onready var tower: Node2D = $Tower
@@ -250,7 +250,7 @@ func _show_victory_panel(summary: Dictionary) -> bool:
 
 func _ensure_game_manager() -> GameManagerSingleton:
     if _game_manager == null:
-        var node := AutoloadUtils.get_autoload("GameManager")
+        var node := AutoloadUtilsConst.get_autoload("GameManager")
         if node is GameManagerScript:
             _game_manager = node as GameManagerSingleton
         elif node != null:

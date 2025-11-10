@@ -1,6 +1,6 @@
 extends Control
 
-const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+const AutoloadUtilsConst := preload("res://scripts/utils/autoload_utils.gd")
 const GameManagerScript := preload("res://scripts/singletons/GameManager.gd")
 
 const PRELOAD_PATHS: Array[String] = [
@@ -48,7 +48,7 @@ func _load_paths_async(total: int) -> void:
         await get_tree().process_frame
 
 func _loading_complete() -> void:
-    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    var manager_node := AutoloadUtilsConst.get_autoload("GameManager")
     if manager_node is GameManagerScript:
         var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.prepare_next_wave()
@@ -69,7 +69,7 @@ func _on_continue_pressed() -> void:
     _proceed_to_next_scene()
 
 func _proceed_to_next_scene() -> void:
-    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    var manager_node := AutoloadUtilsConst.get_autoload("GameManager")
     if manager_node is GameManagerScript:
         var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.on_loading_complete()

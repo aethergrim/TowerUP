@@ -1,7 +1,7 @@
 extends Control
 
 const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
-const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+const AutoloadUtilsConst := preload("res://scripts/utils/autoload_utils.gd")
 const GameManagerScript := preload("res://scripts/singletons/GameManager.gd")
 
 @onready var return_button: Button = $Panel/MarginContainer/VBoxContainer/ReturnButton
@@ -33,7 +33,7 @@ func _on_return_pressed() -> void:
     var tree := get_tree()
     if tree:
         tree.paused = false
-    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    var manager_node := AutoloadUtilsConst.get_autoload("GameManager")
     if manager_node is GameManagerScript:
         var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.return_to_start_menu()
@@ -49,7 +49,7 @@ func _refresh_title() -> void:
     if not title_label:
         return
     var day_text: String = ""
-    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    var manager_node := AutoloadUtilsConst.get_autoload("GameManager")
     if manager_node is GameManagerScript:
         var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         var days: int = max(1, manager.days_survived)

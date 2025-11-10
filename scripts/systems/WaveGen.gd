@@ -25,17 +25,22 @@ func generate_wave(day: int) -> Array:
     for dir in directions:
         var template_ids: Array[String] = _select_templates_for_direction(day)
         for template_id in template_ids:
+            if template_id == null:
+                continue
             var template_data: Dictionary = EnemyTemplates.ENEMY.get(template_id, {})
             if template_data.is_empty():
                 continue
             var scaled: Dictionary = scale_stats(template_data, day)
-            var affix_id: String = Affixes.FRONT_THEME.get(dir, null)
+            var affix_lookup = Affixes.FRONT_THEME.get(dir, null)
+            var affix_id: String = ""
+            if affix_lookup != null:
+                affix_id = String(affix_lookup)
             var applied: Dictionary = scaled.duplicate(true)
-            if affix_id != null:
+            if not affix_id.is_empty():
                 applied = apply_affix(applied, affix_id)
                 applied["affix"] = affix_id
             else:
-                applied["affix"] = null
+                applied["affix"] = ""
             applied["template"] = template_id
             applied["dir"] = dir
             applied["count"] = _calculate_count(template_id, day)
@@ -59,11 +64,11 @@ func build_letter(day: int, spec: Array) -> Dictionary:
             directions.append(dir)
         var template_id: String = String(entry.get("template", "grunt"))
         var count: int = int(entry.get("count", 1))
-        var affix_id: String = entry.get("affix", null)
+        var affix_id: String = String(entry.get("affix", ""))
         var dir_name: String = Constants.get_direction_name(dir)
         var descriptor: String = "%d %s" % [count, template_id.capitalize()]
-        if affix_id != null and not String(affix_id).is_empty():
-            descriptor += " (%s)" % String(affix_id)
+        if not affix_id.is_empty():
+            descriptor += " (%s)" % affix_id
         summary_lines.append("%s front: %s" % [dir_name, descriptor])
     var summary_text: String = "\n".join(summary_lines)
     return {
@@ -87,7 +92,7 @@ func scale_stats(template: Dictionary, day: int) -> Dictionary:
     }
 
 func apply_affix(base: Dictionary, affix_id: String) -> Dictionary:
-    if affix_id == null:
+    if affix_id == null or affix_id.is_empty():
         return base
     var affix_data: Dictionary = Affixes.AFFIX.get(affix_id, {})
     if affix_data.is_empty():
@@ -108,7 +113,8 @@ func _select_directions(day: int) -> Array[int]:
     return available.slice(0, count)
 
 func _select_templates_for_direction(day: int) -> Array[String]:
-    var pool: Array[String] = ["grunt"]
+    var pool: Array[String] = []
+    pool.append("grunt")
     if day >= 1:
         pool.append("rusher")
     if day >= 2:

@@ -1,6 +1,6 @@
 extends Node
 
-const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+const AutoloadUtilsConst := preload("res://scripts/utils/autoload_utils.gd")
 const GameManagerScript := preload("res://scripts/singletons/GameManager.gd")
 
 signal letter_updated(text: String)
@@ -12,7 +12,7 @@ func _ready() -> void:
     _refresh_letter()
 
 func _refresh_letter() -> void:
-    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    var manager_node := AutoloadUtilsConst.get_autoload("GameManager")
     if manager_node is GameManagerScript:
         var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         var summary: Dictionary = manager.get_letter_summary()
