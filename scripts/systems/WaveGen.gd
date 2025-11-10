@@ -52,8 +52,14 @@ func generate_wave(day: int) -> Array:
     return spec
 
 func build_letter(day: int, spec: Array) -> Dictionary:
-    var commander: String = COMMANDER_NAMES[_rng.randi_range(0, COMMANDER_NAMES.size() - 1)] if COMMANDER_NAMES.size() > 0 else "Unnamed Commander"
-    var intro: String = INTRO_LINES[_rng.randi_range(0, INTRO_LINES.size() - 1)] if INTRO_LINES.size() > 0 else "The enemy advances."
+    var commander: String = "Unnamed Commander"
+    if COMMANDER_NAMES.size() > 0:
+        var commander_index: int = _rng.randi_range(0, COMMANDER_NAMES.size() - 1)
+        commander = String(COMMANDER_NAMES[commander_index])
+    var intro: String = "The enemy advances."
+    if INTRO_LINES.size() > 0:
+        var intro_index: int = _rng.randi_range(0, INTRO_LINES.size() - 1)
+        intro = String(INTRO_LINES[intro_index])
     var summary_lines: Array[String] = []
     var directions: Array[int] = []
     for entry in spec:
@@ -110,7 +116,11 @@ func _select_directions(day: int) -> Array[int]:
     var available: Array[int] = [Constants.Dir.N, Constants.Dir.E, Constants.Dir.S, Constants.Dir.W]
     available.shuffle()
     var count: int = clamp(1 + int(floor(float(day) / 3.0)), 1, available.size())
-    return available.slice(0, count)
+    var selection: Array[int] = []
+    for index in range(count):
+        var value: int = int(available[index])
+        selection.append(value)
+    return selection
 
 func _select_templates_for_direction(day: int) -> Array[String]:
     var pool: Array[String] = []
@@ -123,7 +133,13 @@ func _select_templates_for_direction(day: int) -> Array[String]:
         pool.append("sapper")
     var count: int = clamp(1 + int(floor(float(day) / 4.0)), 1, pool.size())
     pool.shuffle()
-    return pool.slice(0, count)
+    var selection: Array[String] = []
+    for index in range(count):
+        var entry = pool[index]
+        if entry == null:
+            continue
+        selection.append(String(entry))
+    return selection
 
 func _calculate_count(template_id: String, day: int) -> int:
     var base_count: float = 4.0 + float(day) * 1.5

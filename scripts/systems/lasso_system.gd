@@ -20,7 +20,6 @@ func _ready() -> void:
     _origin = global_position
     set_process(true)
     set_process_input(true)
-    set_process_unhandled_input(true)
     queue_redraw()
 
 func _process(delta: float) -> void:
@@ -41,7 +40,7 @@ func _process(delta: float) -> void:
             pass
     queue_redraw()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
     if event.is_action_pressed("lasso_action"):
         _start_deploy()
     elif event.is_action_released("lasso_action") and _state == State.DEPLOY:
