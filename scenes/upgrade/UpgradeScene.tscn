@@ -51,17 +51,25 @@ text = "Awaiting instructions."
 layout_mode = 2
 text = "Resources"
 
-[node name="AmmoButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
+[node name="ReinforcedButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Convert 5 Metal → +5 Ammo"
+text = "Reinforced Hull (20 Metal)"
 
-[node name="CoolButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
+[node name="CoolingButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Convert 3 Essence → Cool 30"
+text = "Cooling Pipes (10 Essence)"
+
+[node name="CoilsButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Improved Coils (15 Metal)"
+
+[node name="StorageButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Extra Storage (8 Essence)"
 
 [node name="ContinueButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Prepare the Next Wave"
+text = "Deploy"
 
 [node name="AbandonButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2

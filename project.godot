@@ -12,7 +12,7 @@ run/main_scene="res://scenes/main_menu/StartMenu.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 
 [autoload]
-GameManager="*res://scripts/game_manager.gd"
+GameManager="*res://scripts/singletons/GameManager.gd"
 
 [display]
 window/size/viewport_width=640

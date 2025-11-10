@@ -6,57 +6,77 @@ const Constants := preload("res://scripts/constants.gd")
 
 @onready var letter_label: RichTextLabel = $MarginContainer/VBoxContainer/LetterLabel
 @onready var resources_label: Label = $MarginContainer/VBoxContainer/ResourcesLabel
-@onready var ammo_button: Button = $MarginContainer/VBoxContainer/AmmoButton
-@onready var cool_button: Button = $MarginContainer/VBoxContainer/CoolButton
+@onready var reinforced_button: Button = $MarginContainer/VBoxContainer/ReinforcedButton
+@onready var cooling_button: Button = $MarginContainer/VBoxContainer/CoolingButton
+@onready var coils_button: Button = $MarginContainer/VBoxContainer/CoilsButton
+@onready var storage_button: Button = $MarginContainer/VBoxContainer/StorageButton
 @onready var continue_button: Button = $MarginContainer/VBoxContainer/ContinueButton
 @onready var abandon_button: Button = $MarginContainer/VBoxContainer/AbandonButton
 
 var _letter_system: Node = null
 
+const UPGRADE_COSTS: Dictionary = {
+    "reinforced_hull": {"resource": Constants.LOOT_METAL, "amount": 20},
+    "cooling_pipes": {"resource": Constants.LOOT_ESSENCE, "amount": 10},
+    "improved_coils": {"resource": Constants.LOOT_METAL, "amount": 15},
+    "extra_storage": {"resource": Constants.LOOT_ESSENCE, "amount": 8}
+}
+
 func _ready() -> void:
     _letter_system = get_node_or_null(letter_system_path)
-    ammo_button.pressed.connect(_on_ammo_pressed)
-    cool_button.pressed.connect(_on_cool_pressed)
-    continue_button.pressed.connect(_on_continue_pressed)
-    abandon_button.pressed.connect(_on_abandon_pressed)
     if _letter_system and _letter_system.has_signal("letter_updated"):
         _letter_system.letter_updated.connect(_on_letter_updated)
     if _letter_system and _letter_system.has_method("get_letter_text"):
         _on_letter_updated(_letter_system.get_letter_text())
+    reinforced_button.pressed.connect(_on_reinforced_pressed)
+    cooling_button.pressed.connect(_on_cooling_pressed)
+    coils_button.pressed.connect(_on_coils_pressed)
+    storage_button.pressed.connect(_on_storage_pressed)
+    continue_button.pressed.connect(_on_continue_pressed)
+    abandon_button.pressed.connect(_on_abandon_pressed)
+    if Engine.has_singleton("GameManager"):
+        GameManager.resources_updated.connect(_refresh_resources)
     _refresh_resources()
 
 func _on_letter_updated(text: String) -> void:
     letter_label.text = text
 
 func _refresh_resources() -> void:
-    var display_text: String = "No resources recorded."
+    var metal: int = 0
+    var essence: int = 0
     if Engine.has_singleton("GameManager"):
-        var values: Dictionary = GameManager.get_resources()
-        display_text = "Metal: %d  |  Essence: %d" % [
-            values.get(Constants.LOOT_METAL, 0),
-            values.get(Constants.LOOT_ESSENCE, 0)
-        ]
-    resources_label.text = display_text
+        var snapshot: Dictionary = GameManager.get_resources()
+        metal = snapshot.get(Constants.LOOT_METAL, 0)
+        essence = snapshot.get(Constants.LOOT_ESSENCE, 0)
+    resources_label.text = "Metal: %d | Essence: %d" % [metal, essence]
 
-func _on_ammo_pressed() -> void:
+func _attempt_purchase(id: String) -> void:
     if not Engine.has_singleton("GameManager"):
         return
-    var cost: Dictionary = {Constants.LOOT_METAL: 5}
-    if GameManager.spend_resources(cost):
-        GameManager.add_pending_ammo(5)
+    var cost: Dictionary = UPGRADE_COSTS.get(id, {})
+    if cost.is_empty():
+        return
+    var resource_id: String = cost.get("resource", Constants.LOOT_METAL)
+    var amount: int = int(cost.get("amount", 0))
+    if GameManager.spend_resource(resource_id, amount):
+        GameManager.apply_upgrade(id)
         _refresh_resources()
 
-func _on_cool_pressed() -> void:
-    if not Engine.has_singleton("GameManager"):
-        return
-    var cost: Dictionary = {Constants.LOOT_ESSENCE: 3}
-    if GameManager.spend_resources(cost):
-        GameManager.add_pending_cooling(30.0)
-        _refresh_resources()
+func _on_reinforced_pressed() -> void:
+    _attempt_purchase("reinforced_hull")
+
+func _on_cooling_pressed() -> void:
+    _attempt_purchase("cooling_pipes")
+
+func _on_coils_pressed() -> void:
+    _attempt_purchase("improved_coils")
+
+func _on_storage_pressed() -> void:
+    _attempt_purchase("extra_storage")
 
 func _on_continue_pressed() -> void:
     if Engine.has_singleton("GameManager"):
-        GameManager.continue_to_next_wave()
+        GameManager.enter_battle()
     if _letter_system and _letter_system.has_method("confirm"):
         _letter_system.confirm()
 

@@ -151,3 +151,18 @@ func _find_sprite() -> Sprite2D:
         if sprite:
             return sprite
     return null
+
+func apply_upgrade_profile(upgrades: Dictionary) -> void:
+    var damage_mult: float = float(upgrades.get("damage_mult", 1.0))
+    var heat_mult: float = float(upgrades.get("heat_mult", 1.0))
+    var hp_mult: float = float(upgrades.get("hp_mult", 1.0))
+    var ammo_mult: float = float(upgrades.get("ammo_mult", 1.0))
+    base_damage *= damage_mult
+    heat_increase_per_shot *= heat_mult
+    max_heat *= 1.0 + (1.0 - heat_mult)
+    max_health *= hp_mult
+    ammo = int(round(float(ammo) * ammo_mult))
+    if ammo < 0:
+        ammo = 0
+    health = max_health
+    health_changed.emit(health, max_health)

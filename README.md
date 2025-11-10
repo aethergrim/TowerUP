@@ -12,19 +12,22 @@ res://
 │   ├── battle/
 │   │   ├── BattleScene.tscn         # Active wave gameplay with camera + HUD
 │   │   ├── Tower.tscn               # Tower core scene with health/heat logic
-│   │   ├── Enemy.tscn               # Generic enemy body used by the spawner tiers
+│   │   ├── Enemy.tscn               # Generic enemy body used by the spawner
+│   │   ├── TowerProjectile.tscn     # Visualized tower shots toward enemies
 │   │   ├── Loot.tscn                # Collectable resources spawned on enemy defeat
 │   │   └── GameOver.tscn            # Overlay shown when the tower is destroyed
-│   ├── main_menu/StartMenu.tscn     # Campaign/Skirmish entry with options and quit controls
-│   ├── main_menu/LoadingScreen.tscn # Preloads core scenes before the siege begins
-│   ├── main_menu/LetterModifierWarning.tscn  # Wave briefing with commander + modifier details
-│   └── upgrade/UpgradeScene.tscn    # Intermission letter + upgrade selection
+│   ├── main_menu/
+│   │   ├── StartMenu.tscn           # Campaign entry with options and quit controls
+│   │   ├── LoadingScreen.tscn       # Preloads scenes before the siege begins
+│   │   └── LetterModifierWarning.tscn  # Letter briefing summarizing the next wave
+│   └── upgrade/UpgradeScene.tscn    # Intermission upgrades between waves
 ├── mobs/                            # Enemy archetype folders and texture stubs
 └── scripts/
-    ├── battle/battle_scene.gd       # Coordinates battle systems, tower state, and wave flow
-    ├── game_manager.gd              # Autoload singleton handling waves/resources and scene flow
-    ├── systems/                     # Modular gameplay systems (tower, lasso, loot, wave logic, etc.)
-    └── ui/                          # UI logic for menu, loading, and upgrade scenes
+    ├── battle/                      # Battlefield behaviours (enemy, projectile, scene controller)
+    ├── data/                        # Enemy templates and affix definitions for wave generation
+    ├── singletons/GameManager.gd    # Autoload singleton handling campaign state and scene flow
+    ├── systems/                     # Modular systems (tower core, WaveGen, loot, lasso, etc.)
+    └── ui/                          # UI logic for menus, loading, letter, and upgrade scenes
 ```
 
 ## Getting Started
