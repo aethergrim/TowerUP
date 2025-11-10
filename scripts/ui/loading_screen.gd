@@ -43,6 +43,8 @@ func _load_paths_async(total: int) -> void:
         await get_tree().process_frame
 
 func _loading_complete() -> void:
+    if Engine.has_singleton("GameManager"):
+        GameManager.prepare_next_wave()
     _loading_finished = true
     status_label.text = "Siege ready."
     if continue_button:

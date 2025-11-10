@@ -10,7 +10,7 @@ const Constants := preload("res://scripts/constants.gd")
 @onready var cooling_button: Button = $MarginContainer/VBoxContainer/CoolingButton
 @onready var coils_button: Button = $MarginContainer/VBoxContainer/CoilsButton
 @onready var storage_button: Button = $MarginContainer/VBoxContainer/StorageButton
-@onready var continue_button: Button = $MarginContainer/VBoxContainer/ContinueButton
+@onready var deploy_button: Button = $MarginContainer/VBoxContainer/DeployButton
 @onready var abandon_button: Button = $MarginContainer/VBoxContainer/AbandonButton
 
 var _letter_system: Node = null
@@ -32,7 +32,7 @@ func _ready() -> void:
     cooling_button.pressed.connect(_on_cooling_pressed)
     coils_button.pressed.connect(_on_coils_pressed)
     storage_button.pressed.connect(_on_storage_pressed)
-    continue_button.pressed.connect(_on_continue_pressed)
+    deploy_button.pressed.connect(_on_deploy_pressed)
     abandon_button.pressed.connect(_on_abandon_pressed)
     if Engine.has_singleton("GameManager"):
         GameManager.resources_updated.connect(_refresh_resources)
@@ -74,9 +74,9 @@ func _on_coils_pressed() -> void:
 func _on_storage_pressed() -> void:
     _attempt_purchase("extra_storage")
 
-func _on_continue_pressed() -> void:
+func _on_deploy_pressed() -> void:
     if Engine.has_singleton("GameManager"):
-        GameManager.enter_battle()
+        GameManager.enter_loading_screen()
     if _letter_system and _letter_system.has_method("confirm"):
         _letter_system.confirm()
 

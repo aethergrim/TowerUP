@@ -1,7 +1,7 @@
 extends Node
 
 const Constants := preload("res://scripts/constants.gd")
-const WaveGenScript := preload("res://scripts/systems/WaveGen.gd")
+const WaveGenResource := preload("res://scripts/systems/WaveGen.gd")
 
 const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
 const LOADING_SCENE_PATH := "res://scenes/main_menu/LoadingScreen.tscn"
@@ -27,7 +27,7 @@ var tower_upgrades: Dictionary = {
 var current_wave_spec: Array = []
 var _letter_summary: Dictionary = {}
 
-var _wave_generator: WaveGen = WaveGenScript.new()
+var _wave_generator: WaveGen = WaveGenResource.new()
 
 func _ready() -> void:
     _configure_input_map()
@@ -52,9 +52,11 @@ func reset_campaign() -> void:
 
 func start_new_game() -> void:
     reset_campaign()
-    enter_loading_screen()
+    enter_upgrade()
 
 func on_loading_complete() -> void:
+    if Engine.is_editor_hint():
+        prepare_next_wave()
     show_letter_scene()
 
 func show_letter_scene() -> void:
@@ -76,6 +78,14 @@ func advance_day() -> void:
     days_survived += 1
     difficulty_mult += 0.1
     campaign_updated.emit()
+
+func prepare_next_wave() -> void:
+    var day_index: int = days_survived
+    var generator := get_wave_generator()
+    var raw_spec: Array = generator.generate_wave(day_index)
+    set_upcoming_wave(raw_spec)
+    var letter: Dictionary = generator.build_letter(day_index, raw_spec)
+    set_letter_summary(letter)
 
 func set_upcoming_wave(spec: Array) -> void:
     current_wave_spec = []
@@ -163,8 +173,10 @@ func _apply_difficulty_to_entry(entry: Dictionary) -> Dictionary:
 func _configure_input_map() -> void:
     _ensure_action("cool_action")
     _ensure_action("repair_action")
+    _ensure_action("lasso_action")
     _add_key_to_action("cool_action", Key.KEY_C)
     _add_key_to_action("repair_action", Key.KEY_R)
+    _add_mouse_button_to_action("lasso_action", MouseButton.MOUSE_BUTTON_LEFT)
 
 func _ensure_action(action_name: String) -> void:
     if not InputMap.has_action(action_name):
@@ -173,6 +185,12 @@ func _ensure_action(action_name: String) -> void:
 func _add_key_to_action(action_name: String, keycode: Key) -> void:
     var event := InputEventKey.new()
     event.physical_keycode = keycode
+    if not InputMap.action_has_event(action_name, event):
+        InputMap.action_add_event(action_name, event)
+
+func _add_mouse_button_to_action(action_name: String, button: MouseButton) -> void:
+    var event := InputEventMouseButton.new()
+    event.button_index = button
     if not InputMap.action_has_event(action_name, event):
         InputMap.action_add_event(action_name, event)
 

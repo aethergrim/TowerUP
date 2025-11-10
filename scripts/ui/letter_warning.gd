@@ -22,11 +22,14 @@ func _prepare_letter() -> void:
         _populate_fallback_text()
         return
     var day_index: int = GameManager.days_survived
-    var generator := GameManager.get_wave_generator()
-    var spec: Array = generator.generate_wave(day_index)
-    GameManager.set_upcoming_wave(spec)
-    var letter: Dictionary = generator.build_letter(day_index, spec)
-    GameManager.set_letter_summary(letter)
+    var spec: Array = GameManager.get_upcoming_wave()
+    if spec.is_empty():
+        GameManager.prepare_next_wave()
+        spec = GameManager.get_upcoming_wave()
+    var letter: Dictionary = GameManager.get_letter_summary()
+    if letter.is_empty():
+        GameManager.prepare_next_wave()
+        letter = GameManager.get_letter_summary()
     _current_spec = spec
     _letter_data = letter
     _display_letter(day_index, letter)
@@ -60,12 +63,12 @@ func _populate_fallback_text() -> void:
 
 func _on_proceed_pressed() -> void:
     if Engine.has_singleton("GameManager"):
-        GameManager.enter_upgrade()
+        GameManager.enter_battle()
     else:
-        get_tree().change_scene_to_file("res://scenes/upgrade/UpgradeScene.tscn")
+        get_tree().change_scene_to_file("res://scenes/battle/BattleScene.tscn")
 
 func _on_back_pressed() -> void:
     if Engine.has_singleton("GameManager"):
-        GameManager.return_to_start_menu()
+        GameManager.enter_upgrade()
     else:
         get_tree().change_scene_to_file(START_MENU_SCENE_PATH)

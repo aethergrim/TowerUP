@@ -12,12 +12,14 @@ const Constants := preload("res://scripts/constants.gd")
 @onready var hint_label: Label = $HUD/MarginContainer/VBoxContainer/HintLabel
 @onready var debug_end_button: Button = $HUD/MarginContainer/VBoxContainer/DebugEndButton
 @onready var game_over_ui: Control = $GameOver
+@onready var victory_panel: CanvasLayer = $VictoryPanel
 
 var _collected_resources: Dictionary = {
     Constants.LOOT_METAL: 0,
     Constants.LOOT_ESSENCE: 0
 }
 var _wave_finished: bool = false
+var _kill_counts: Dictionary = {}
 
 func _ready() -> void:
     var tree := get_tree()
@@ -37,10 +39,13 @@ func _reset_state() -> void:
     _collected_resources[Constants.LOOT_METAL] = 0
     _collected_resources[Constants.LOOT_ESSENCE] = 0
     _wave_finished = false
+    _kill_counts.clear()
     if debug_end_button:
         debug_end_button.disabled = false
     if game_over_ui and game_over_ui.has_method("hide_game_over"):
         game_over_ui.hide_game_over()
+    if victory_panel and victory_panel.has_method("hide_victory"):
+        victory_panel.hide_victory()
 
 func _register_tower_with_systems() -> void:
     if repair_heat_system and repair_heat_system.has_method("register_tower"):
@@ -130,7 +135,10 @@ func _on_loot_claimed(loot_type: String) -> void:
     elif loot_type == Constants.LOOT_ESSENCE and tower and tower.has_method("cool_by"):
         tower.cool_by(5.0)
 
-func _on_enemy_defeated(enemy_position: Vector2, loot: Dictionary) -> void:
+func _on_enemy_defeated(enemy_position: Vector2, loot: Dictionary, template_id: String) -> void:
+    if not template_id.is_empty():
+        var current: int = int(_kill_counts.get(template_id, 0))
+        _kill_counts[template_id] = current + 1
     for key in loot.keys():
         var loot_id: String = String(key)
         var amount: int = int(loot[key])
@@ -179,27 +187,48 @@ func _finish_wave(victory: bool) -> void:
         enemy_spawner.cancel_spawning()
     if not Engine.has_singleton("GameManager"):
         if victory:
-            get_tree().change_scene_to_file("res://scenes/main_menu/LoadingScreen.tscn")
+            _show_victory_panel({})
         else:
             get_tree().change_scene_to_file("res://scenes/main_menu/StartMenu.tscn")
         return
     if victory:
+        var completed_day: int = GameManager.days_survived + 1
+        var summary := _build_victory_summary(completed_day)
         GameManager.collect_battle_rewards(_collected_resources.duplicate())
         GameManager.advance_day()
-        call_deferred("_request_victory_transition")
+        if not _show_victory_panel(summary):
+            GameManager.enter_upgrade()
     else:
         if game_over_ui != null:
             return
         call_deferred("_request_defeat_transition")
-
-func _request_victory_transition() -> void:
-    if Engine.has_singleton("GameManager"):
-        GameManager.enter_loading_screen()
-    else:
-        get_tree().change_scene_to_file("res://scenes/main_menu/LoadingScreen.tscn")
 
 func _request_defeat_transition() -> void:
     if Engine.has_singleton("GameManager"):
         GameManager.return_to_start_menu()
     else:
         get_tree().change_scene_to_file("res://scenes/main_menu/StartMenu.tscn")
+
+func _build_victory_summary(completed_day: int) -> Dictionary:
+    var commanders: Array[String] = []
+    var letter: Dictionary = GameManager.get_letter_summary()
+    var commander_name: String = letter.get("commander", "Unknown Commander")
+    if not commander_name.is_empty():
+        commanders.append(commander_name)
+    return {
+        "completed_day": completed_day,
+        "commanders": commanders,
+        "kills": _kill_counts.duplicate(true),
+        "resources": _collected_resources.duplicate(true)
+    }
+
+func _show_victory_panel(summary: Dictionary) -> bool:
+    if victory_panel == null:
+        if Engine.has_singleton("GameManager"):
+            GameManager.enter_upgrade()
+        return true
+    if victory_panel.has_method("show_victory"):
+        victory_panel.show_victory(summary)
+        return true
+    victory_panel.visible = true
+    return true

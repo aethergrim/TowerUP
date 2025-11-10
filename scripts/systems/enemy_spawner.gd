@@ -4,7 +4,7 @@ const Constants := preload("res://scripts/constants.gd")
 
 signal wave_started()
 signal wave_cleared()
-signal enemy_defeated(enemy_position: Vector2, loot: Dictionary)
+signal enemy_defeated(enemy_position: Vector2, loot: Dictionary, template_id: String)
 
 @export var enemy_scene: PackedScene = preload("res://scenes/battle/Enemy.tscn")
 @export var spawn_delay: float = 1.0
@@ -85,10 +85,11 @@ func _spawn_enemy(spec: Dictionary) -> void:
     var direction: int = int(spec.get("dir", Constants.Dir.W))
     enemy_instance.global_position = _get_spawn_position(direction)
     var payload: Dictionary = spec.duplicate(true)
+    var template_id: String = String(payload.get("template", "unknown"))
     if enemy_instance.has_method("initialize"):
         enemy_instance.initialize(_tower, payload)
     if enemy_instance.has_signal("died"):
-        enemy_instance.died.connect(_on_enemy_died)
+        enemy_instance.died.connect(Callable(self, "_on_enemy_died").bind(template_id))
     _active_enemies.append(enemy_instance)
 
 func _get_spawn_position(direction: int) -> Vector2:
@@ -100,9 +101,9 @@ func _get_spawn_position(direction: int) -> Vector2:
         return fallback.global_position
     return global_position
 
-func _on_enemy_died(enemy: Node2D, death_position: Vector2, loot: Dictionary) -> void:
+func _on_enemy_died(enemy: Node2D, death_position: Vector2, loot: Dictionary, template_id: String) -> void:
     _active_enemies.erase(enemy)
-    enemy_defeated.emit(death_position, loot)
+    enemy_defeated.emit(death_position, loot, template_id)
     if _active_enemies.is_empty() and _spawn_queue.is_empty():
         wave_cleared.emit()
 

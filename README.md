@@ -10,15 +10,16 @@ res://
 ├── project.godot           # Godot project configuration (autoload + inputs)
 ├── scenes/
 │   ├── battle/
-│   │   ├── BattleScene.tscn         # Active wave gameplay with camera + HUD
+│   │   ├── BattleScene.tscn         # Active wave gameplay with camera + HUD overlays
 │   │   ├── Tower.tscn               # Tower core scene with health/heat logic
 │   │   ├── Enemy.tscn               # Generic enemy body used by the spawner
 │   │   ├── TowerProjectile.tscn     # Visualized tower shots toward enemies
 │   │   ├── Loot.tscn                # Collectable resources spawned on enemy defeat
-│   │   └── GameOver.tscn            # Overlay shown when the tower is destroyed
+│   │   ├── GameOver.tscn            # Overlay shown when the tower is destroyed
+│   │   └── VictoryPanel.tscn        # Post-wave summary with loot + kill recap
 │   ├── main_menu/
 │   │   ├── StartMenu.tscn           # Campaign entry with options and quit controls
-│   │   ├── LoadingScreen.tscn       # Preloads scenes before the siege begins
+│   │   ├── LoadingScreen.tscn       # Preloads scenes while the next wave is prepared
 │   │   └── LetterModifierWarning.tscn  # Letter briefing summarizing the next wave
 │   └── upgrade/UpgradeScene.tscn    # Intermission upgrades between waves
 ├── mobs/                            # Enemy archetype folders and texture stubs
@@ -34,7 +35,7 @@ res://
 
 1. Open the project in Godot 4.4.1.
 2. Ensure `GameManager` is registered as an autoload (configured in `project.godot`).
-3. Run the project — the main menu loads first. Starting a new campaign shows a loading screen, then a letter briefing that previews the incoming commander, modifiers, and spawn directions. Proceed to the battle, survive or fall, then collect upgrades before preparing the next randomized wave.
+3. Run the project — the main menu loads first. Starting a new campaign routes you to the upgrade bay, then the loading screen prepares the next wave before you read the latest letter, deploy into battle, and either fall (Game Over) or review the victory panel before returning for upgrades.
 
 ## Design Pillars
 

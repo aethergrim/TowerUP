@@ -67,9 +67,9 @@ text = "Improved Coils (15 Metal)"
 layout_mode = 2
 text = "Extra Storage (8 Essence)"
 
-[node name="ContinueButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
+[node name="DeployButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Deploy"
+text = "DEPLOY"
 
 [node name="AbandonButton" type="Button" parent="UpgradeMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
