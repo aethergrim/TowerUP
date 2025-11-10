@@ -130,13 +130,13 @@ func _on_loot_claimed(loot_type: String) -> void:
     elif loot_type == Constants.LOOT_ESSENCE and tower and tower.has_method("cool_by"):
         tower.cool_by(5.0)
 
-func _on_enemy_defeated(position: Vector2, loot: Dictionary) -> void:
+func _on_enemy_defeated(enemy_position: Vector2, loot: Dictionary) -> void:
     for key in loot.keys():
         var loot_id: String = String(key)
         var amount: int = int(loot[key])
         for _i in range(amount):
             if loot_system and loot_system.has_method("spawn_loot"):
-                loot_system.spawn_loot(position, loot_id)
+                loot_system.spawn_loot(enemy_position, loot_id)
 
 func _on_ammo_generated(amount: int) -> void:
     if tower and tower.has_method("add_ammo"):
@@ -149,7 +149,7 @@ func _on_cooling_requested(amount: float) -> void:
 func _on_wave_cleared() -> void:
     if _wave_finished:
         return
-    _finish_wave(true)
+    call_deferred("_finish_wave", true)
 
 func _on_tower_destroyed() -> void:
     if _wave_finished:
@@ -167,7 +167,7 @@ func _on_tower_health_changed(_current: float, _maximum: float) -> void:
 
 func _on_debug_end_pressed() -> void:
     if not _wave_finished:
-        _finish_wave(true)
+        call_deferred("_finish_wave", true)
 
 func _finish_wave(victory: bool) -> void:
     if _wave_finished:
@@ -186,8 +186,20 @@ func _finish_wave(victory: bool) -> void:
     if victory:
         GameManager.collect_battle_rewards(_collected_resources.duplicate())
         GameManager.advance_day()
-        GameManager.enter_loading_screen()
+        call_deferred("_request_victory_transition")
     else:
         if game_over_ui != null:
             return
+        call_deferred("_request_defeat_transition")
+
+func _request_victory_transition() -> void:
+    if Engine.has_singleton("GameManager"):
+        GameManager.enter_loading_screen()
+    else:
+        get_tree().change_scene_to_file("res://scenes/main_menu/LoadingScreen.tscn")
+
+func _request_defeat_transition() -> void:
+    if Engine.has_singleton("GameManager"):
         GameManager.return_to_start_menu()
+    else:
+        get_tree().change_scene_to_file("res://scenes/main_menu/StartMenu.tscn")

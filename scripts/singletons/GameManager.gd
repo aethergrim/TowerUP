@@ -1,7 +1,7 @@
 extends Node
 
 const Constants := preload("res://scripts/constants.gd")
-const WaveGen := preload("res://scripts/systems/WaveGen.gd")
+const WaveGenScript := preload("res://scripts/systems/WaveGen.gd")
 
 const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
 const LOADING_SCENE_PATH := "res://scenes/main_menu/LoadingScreen.tscn"
@@ -27,7 +27,7 @@ var tower_upgrades: Dictionary = {
 var current_wave_spec: Array = []
 var _letter_summary: Dictionary = {}
 
-var _wave_generator: WaveGen = WaveGen.new()
+var _wave_generator: WaveGen = WaveGenScript.new()
 
 func _ready() -> void:
     _configure_input_map()

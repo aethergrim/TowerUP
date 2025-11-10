@@ -4,7 +4,7 @@ const Constants := preload("res://scripts/constants.gd")
 
 signal wave_started()
 signal wave_cleared()
-signal enemy_defeated(position: Vector2, loot: Dictionary)
+signal enemy_defeated(enemy_position: Vector2, loot: Dictionary)
 
 @export var enemy_scene: PackedScene = preload("res://scenes/battle/Enemy.tscn")
 @export var spawn_delay: float = 1.0
@@ -100,9 +100,9 @@ func _get_spawn_position(direction: int) -> Vector2:
         return fallback.global_position
     return global_position
 
-func _on_enemy_died(enemy: Node2D, position: Vector2, loot: Dictionary) -> void:
+func _on_enemy_died(enemy: Node2D, death_position: Vector2, loot: Dictionary) -> void:
     _active_enemies.erase(enemy)
-    enemy_defeated.emit(position, loot)
+    enemy_defeated.emit(death_position, loot)
     if _active_enemies.is_empty() and _spawn_queue.is_empty():
         wave_cleared.emit()
 

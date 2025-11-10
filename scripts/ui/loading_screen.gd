@@ -11,10 +11,17 @@ const PRELOAD_PATHS: Array[String] = [
 
 @onready var progress_bar: ProgressBar = $MarginContainer/VBoxContainer/ProgressBar
 @onready var status_label: Label = $MarginContainer/VBoxContainer/StatusLabel
+@onready var continue_button: Button = $MarginContainer/VBoxContainer/ContinueButton
+
+var _loading_finished: bool = false
 
 func _ready() -> void:
     progress_bar.value = 0.0
     status_label.text = "Priming divinity..."
+    if continue_button:
+        continue_button.disabled = true
+        continue_button.visible = false
+        continue_button.pressed.connect(_on_continue_pressed)
     _begin_loading()
 
 func _begin_loading() -> void:
@@ -36,7 +43,21 @@ func _load_paths_async(total: int) -> void:
         await get_tree().process_frame
 
 func _loading_complete() -> void:
+    _loading_finished = true
     status_label.text = "Siege ready."
+    if continue_button:
+        continue_button.disabled = false
+        continue_button.visible = true
+        continue_button.grab_focus()
+    else:
+        _proceed_to_next_scene()
+
+func _on_continue_pressed() -> void:
+    if not _loading_finished:
+        return
+    _proceed_to_next_scene()
+
+func _proceed_to_next_scene() -> void:
     if Engine.has_singleton("GameManager"):
         GameManager.on_loading_complete()
     else:
