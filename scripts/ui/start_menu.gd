@@ -1,5 +1,7 @@
 extends Control
 
+const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+
 const RESOLUTION_LABELS: Array[String] = [
     "640 x 360",
     "960 x 540",
@@ -38,14 +40,20 @@ func _ready() -> void:
     options_panel.visible = false
 
 func _on_campaign_pressed() -> void:
-    var manager := _get_game_manager()
+    print("[StartMenu] CAMPAIGN pressed")
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.start_new_game()
+    else:
+        push_error("[StartMenu] GameManager autoload missing; unable to start campaign")
 
 func _on_quick_pressed() -> void:
-    var manager := _get_game_manager()
+    print("[StartMenu] QUICK SKIRMISH pressed")
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.start_new_game()
+    else:
+        push_error("[StartMenu] GameManager autoload missing; unable to start skirmish")
 
 func _on_options_pressed() -> void:
     options_panel.visible = !options_panel.visible
@@ -98,7 +106,3 @@ func _get_current_window_size() -> Vector2i:
         return window.size
     return DisplayServer.window_get_size()
 
-func _get_game_manager() -> GameManagerSingleton:
-    if Engine.has_singleton("GameManager"):
-        return GameManager
-    return null

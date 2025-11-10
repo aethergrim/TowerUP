@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
+const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
 
 @onready var title_label: Label = $Panel/MarginContainer/VBoxContainer/TitleLabel
 @onready var commander_label: Label = $Panel/MarginContainer/VBoxContainer/CommanderLabel
@@ -56,16 +57,16 @@ func _populate_fields(summary: Dictionary) -> void:
     resources_label.text = "Resources Recovered: Metal %d | Essence %d" % [metal, essence]
 
 func _on_continue_pressed() -> void:
+    print("[VictoryPanel] CONTINUE pressed")
     hide_victory()
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.enter_upgrade()
     else:
         var tree := get_tree()
-        if tree:
-            tree.change_scene_to_file(START_MENU_SCENE_PATH)
-
-func _get_game_manager() -> GameManagerSingleton:
-    if Engine.has_singleton("GameManager"):
-        return GameManager
-    return null
+        if tree and ResourceLoader.exists(START_MENU_SCENE_PATH):
+            var error_code := tree.change_scene_to_file(START_MENU_SCENE_PATH)
+            if error_code != OK:
+                push_error("[VictoryPanel] Failed to change scene: " + str(error_code))
+        else:
+            push_error("[VictoryPanel] Missing start menu scene: " + START_MENU_SCENE_PATH)

@@ -53,6 +53,7 @@ func reset_campaign() -> void:
 
 func start_new_game() -> void:
     reset_campaign()
+    print("[GameManager] New campaign initialized")
     enter_upgrade()
 
 func on_loading_complete() -> void:
@@ -199,8 +200,9 @@ func _change_scene(path: String) -> void:
     if path.is_empty():
         push_warning("Attempted to change to an empty scene path.")
         return
-    var packed_scene: PackedScene = load(path)
-    if packed_scene:
-        get_tree().change_scene_to_packed(packed_scene)
-    else:
-        push_warning("Failed to load scene: %s" % path)
+    if not ResourceLoader.exists(path):
+        push_error("[GameManager] Scene path invalid: " + path)
+        return
+    var error_code := get_tree().change_scene_to_file(path)
+    if error_code != OK:
+        push_error("[GameManager] change_scene_to_file failed: " + str(error_code))

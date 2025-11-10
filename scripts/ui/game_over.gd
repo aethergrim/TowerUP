@@ -1,6 +1,7 @@
 extends Control
 
 const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
+const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
 
 @onready var return_button: Button = $Panel/MarginContainer/VBoxContainer/ReturnButton
 @onready var title_label: Label = $Panel/MarginContainer/VBoxContainer/Title
@@ -27,22 +28,26 @@ func hide_game_over() -> void:
         tree.paused = false
 
 func _on_return_pressed() -> void:
+    print("[GameOver] RETURN pressed")
     var tree := get_tree()
     if tree:
         tree.paused = false
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.return_to_start_menu()
         return
-    var scene: PackedScene = load(START_MENU_SCENE_PATH)
-    if scene and tree:
-        tree.change_scene_to_packed(scene)
+    if tree and ResourceLoader.exists(START_MENU_SCENE_PATH):
+        var error_code := tree.change_scene_to_file(START_MENU_SCENE_PATH)
+        if error_code != OK:
+            push_error("[GameOver] Failed to change scene: " + str(error_code))
+    else:
+        push_error("[GameOver] Missing start menu scene: " + START_MENU_SCENE_PATH)
 
 func _refresh_title() -> void:
     if not title_label:
         return
     var day_text: String = ""
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         var days: int = max(1, manager.days_survived)
         var suffix: String = ""
@@ -50,8 +55,3 @@ func _refresh_title() -> void:
             suffix = "s"
         day_text = "\nThe Tower stood for %d day%s." % [days, suffix]
     title_label.text = "GAME OVER%s" % day_text
-
-func _get_game_manager() -> GameManagerSingleton:
-    if Engine.has_singleton("GameManager"):
-        return GameManager
-    return null

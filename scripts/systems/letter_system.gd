@@ -1,5 +1,7 @@
 extends Node
 
+const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+
 signal letter_updated(text: String)
 signal continue_requested()
 
@@ -9,7 +11,7 @@ func _ready() -> void:
     _refresh_letter()
 
 func _refresh_letter() -> void:
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         var summary: Dictionary = manager.get_letter_summary()
         var commander: String = summary.get("commander", "Unknown Commander")
@@ -31,7 +33,3 @@ func get_letter_text() -> String:
 func confirm() -> void:
     continue_requested.emit()
 
-func _get_game_manager() -> GameManagerSingleton:
-    if Engine.has_singleton("GameManager"):
-        return GameManager
-    return null

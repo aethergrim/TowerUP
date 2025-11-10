@@ -1,5 +1,7 @@
 extends Control
 
+const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+
 const PRELOAD_PATHS: Array[String] = [
     "res://scenes/main_menu/LetterModifierWarning.tscn",
     "res://scenes/battle/BattleScene.tscn",
@@ -8,6 +10,8 @@ const PRELOAD_PATHS: Array[String] = [
     "res://scenes/battle/Enemy.tscn",
     "res://scenes/battle/Loot.tscn"
 ]
+
+const LETTER_SCENE_PATH := "res://scenes/main_menu/LetterModifierWarning.tscn"
 
 @onready var progress_bar: ProgressBar = $MarginContainer/VBoxContainer/ProgressBar
 @onready var status_label: Label = $MarginContainer/VBoxContainer/StatusLabel
@@ -43,11 +47,12 @@ func _load_paths_async(total: int) -> void:
         await get_tree().process_frame
 
 func _loading_complete() -> void:
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.prepare_next_wave()
     _loading_finished = true
     status_label.text = "Siege ready."
+    print("[LoadingScreen] Assets prepared; awaiting confirmation")
     if continue_button:
         continue_button.disabled = false
         continue_button.visible = true
@@ -58,16 +63,17 @@ func _loading_complete() -> void:
 func _on_continue_pressed() -> void:
     if not _loading_finished:
         return
+    print("[LoadingScreen] CONTINUE pressed")
     _proceed_to_next_scene()
 
 func _proceed_to_next_scene() -> void:
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.on_loading_complete()
     else:
-        get_tree().change_scene_to_file("res://scenes/main_menu/LetterModifierWarning.tscn")
-
-func _get_game_manager() -> GameManagerSingleton:
-    if Engine.has_singleton("GameManager"):
-        return GameManager
-    return null
+        if ResourceLoader.exists(LETTER_SCENE_PATH):
+            var error_code := get_tree().change_scene_to_file(LETTER_SCENE_PATH)
+            if error_code != OK:
+                push_error("[LoadingScreen] Failed to change scene: " + str(error_code))
+        else:
+            push_error("[LoadingScreen] Missing letter scene: " + LETTER_SCENE_PATH)

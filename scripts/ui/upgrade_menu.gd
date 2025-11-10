@@ -1,5 +1,7 @@
 extends Control
 
+const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+
 const Constants := preload("res://scripts/constants.gd")
 
 @export var letter_system_path: NodePath
@@ -34,7 +36,7 @@ func _ready() -> void:
     storage_button.pressed.connect(_on_storage_pressed)
     deploy_button.pressed.connect(_on_deploy_pressed)
     abandon_button.pressed.connect(_on_abandon_pressed)
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.resources_updated.connect(_refresh_resources)
     _refresh_resources()
@@ -45,7 +47,7 @@ func _on_letter_updated(text: String) -> void:
 func _refresh_resources() -> void:
     var metal: int = 0
     var essence: int = 0
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         var snapshot: Dictionary = manager.get_resources()
         metal = snapshot.get(Constants.LOOT_METAL, 0)
@@ -53,7 +55,7 @@ func _refresh_resources() -> void:
     resources_label.text = "Metal: %d | Essence: %d" % [metal, essence]
 
 func _attempt_purchase(id: String) -> void:
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager == null:
         return
     var cost: Dictionary = UPGRADE_COSTS.get(id, {})
@@ -78,18 +80,19 @@ func _on_storage_pressed() -> void:
     _attempt_purchase("extra_storage")
 
 func _on_deploy_pressed() -> void:
-    var manager := _get_game_manager()
+    print("[UpgradeMenu] DEPLOY pressed")
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.enter_loading_screen()
+    else:
+        push_error("[UpgradeMenu] GameManager autoload missing; cannot deploy")
     if _letter_system and _letter_system.has_method("confirm"):
         _letter_system.confirm()
 
 func _on_abandon_pressed() -> void:
-    var manager := _get_game_manager()
+    print("[UpgradeMenu] ABANDON pressed")
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.return_to_start_menu()
-
-func _get_game_manager() -> GameManagerSingleton:
-    if Engine.has_singleton("GameManager"):
-        return GameManager
-    return null
+    else:
+        push_error("[UpgradeMenu] GameManager autoload missing; cannot abandon")

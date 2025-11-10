@@ -1,6 +1,7 @@
 extends Node2D
 
 const Constants := preload("res://scripts/constants.gd")
+const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
 
 @onready var tower: Node2D = $Tower
 @onready var enemy_spawner: Node2D = $EnemySpawner
@@ -27,7 +28,7 @@ func _ready() -> void:
     if tree:
         tree.paused = false
     _reset_state()
-    _game_manager = _get_game_manager()
+    _game_manager = _ensure_game_manager()
     _register_tower_with_systems()
     _connect_signals()
     _apply_upgrade_profile()
@@ -246,12 +247,11 @@ func _show_victory_panel(summary: Dictionary) -> bool:
     victory_panel.visible = true
     return true
 
-func _get_game_manager() -> GameManagerSingleton:
-    if Engine.has_singleton("GameManager"):
-        return GameManager
-    return null
-
 func _ensure_game_manager() -> GameManagerSingleton:
     if _game_manager == null:
-        _game_manager = _get_game_manager()
+        var node := AutoloadUtils.get_autoload("GameManager")
+        if node is GameManagerSingleton:
+            _game_manager = node
+        elif node != null:
+            push_error("[BattleScene] Autoload 'GameManager' is not a GameManagerSingleton instance")
     return _game_manager

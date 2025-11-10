@@ -2,6 +2,7 @@ extends Control
 
 const Constants := preload("res://scripts/constants.gd")
 const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
+const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
 
 @onready var commander_label: Label = $MarginContainer/Panel/VBoxContainer/CommanderLabel
 @onready var message_label: RichTextLabel = $MarginContainer/Panel/VBoxContainer/MessageLabel
@@ -18,7 +19,7 @@ func _ready() -> void:
     _prepare_letter()
 
 func _prepare_letter() -> void:
-    var manager := _get_game_manager()
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager == null:
         _populate_fallback_text()
         return
@@ -63,20 +64,28 @@ func _populate_fallback_text() -> void:
     summary_label.text = "Awaiting wave specifications."
 
 func _on_proceed_pressed() -> void:
-    var manager := _get_game_manager()
+    print("[LetterWarning] PROCEED pressed")
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.enter_battle()
     else:
-        get_tree().change_scene_to_file("res://scenes/battle/BattleScene.tscn")
+        var battle_path := "res://scenes/battle/BattleScene.tscn"
+        if ResourceLoader.exists(battle_path):
+            var error_code := get_tree().change_scene_to_file(battle_path)
+            if error_code != OK:
+                push_error("[LetterWarning] Failed to change scene: " + str(error_code))
+        else:
+            push_error("[LetterWarning] Missing battle scene: " + battle_path)
 
 func _on_back_pressed() -> void:
-    var manager := _get_game_manager()
+    print("[LetterWarning] BACK pressed")
+    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
     if manager:
         manager.enter_upgrade()
     else:
-        get_tree().change_scene_to_file(START_MENU_SCENE_PATH)
-
-func _get_game_manager() -> GameManagerSingleton:
-    if Engine.has_singleton("GameManager"):
-        return GameManager
-    return null
+        if ResourceLoader.exists(START_MENU_SCENE_PATH):
+            var error_code := get_tree().change_scene_to_file(START_MENU_SCENE_PATH)
+            if error_code != OK:
+                push_error("[LetterWarning] Failed to change scene: " + str(error_code))
+        else:
+            push_error("[LetterWarning] Missing start menu scene: " + START_MENU_SCENE_PATH)
