@@ -31,7 +31,7 @@ func get_letter_text() -> String:
 func confirm() -> void:
     continue_requested.emit()
 
-func _get_game_manager() -> GameManager:
+func _get_game_manager() -> GameManagerSingleton:
     if Engine.has_singleton("GameManager"):
         return GameManager
     return null

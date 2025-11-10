@@ -76,7 +76,7 @@ func _on_back_pressed() -> void:
     else:
         get_tree().change_scene_to_file(START_MENU_SCENE_PATH)
 
-func _get_game_manager() -> GameManager:
+func _get_game_manager() -> GameManagerSingleton:
     if Engine.has_singleton("GameManager"):
         return GameManager
     return null

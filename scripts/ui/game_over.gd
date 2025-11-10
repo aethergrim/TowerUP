@@ -51,7 +51,7 @@ func _refresh_title() -> void:
         day_text = "\nThe Tower stood for %d day%s." % [days, suffix]
     title_label.text = "GAME OVER%s" % day_text
 
-func _get_game_manager() -> GameManager:
+func _get_game_manager() -> GameManagerSingleton:
     if Engine.has_singleton("GameManager"):
         return GameManager
     return null

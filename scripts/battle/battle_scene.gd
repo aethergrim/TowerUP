@@ -20,7 +20,7 @@ var _collected_resources: Dictionary = {
 }
 var _wave_finished: bool = false
 var _kill_counts: Dictionary = {}
-var _game_manager: GameManager = null
+var _game_manager: GameManagerSingleton = null
 
 func _ready() -> void:
     var tree := get_tree()
@@ -246,12 +246,12 @@ func _show_victory_panel(summary: Dictionary) -> bool:
     victory_panel.visible = true
     return true
 
-func _get_game_manager() -> GameManager:
+func _get_game_manager() -> GameManagerSingleton:
     if Engine.has_singleton("GameManager"):
         return GameManager
     return null
 
-func _ensure_game_manager() -> GameManager:
+func _ensure_game_manager() -> GameManagerSingleton:
     if _game_manager == null:
         _game_manager = _get_game_manager()
     return _game_manager
