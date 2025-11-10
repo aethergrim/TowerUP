@@ -1,6 +1,7 @@
 extends Control
 
 const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+const GameManagerScript := preload("res://scripts/singletons/GameManager.gd")
 
 const PRELOAD_PATHS: Array[String] = [
     "res://scenes/main_menu/LetterModifierWarning.tscn",
@@ -47,8 +48,9 @@ func _load_paths_async(total: int) -> void:
         await get_tree().process_frame
 
 func _loading_complete() -> void:
-    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
-    if manager:
+    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    if manager_node is GameManagerScript:
+        var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.prepare_next_wave()
     _loading_finished = true
     status_label.text = "Siege ready."
@@ -67,8 +69,9 @@ func _on_continue_pressed() -> void:
     _proceed_to_next_scene()
 
 func _proceed_to_next_scene() -> void:
-    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
-    if manager:
+    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    if manager_node is GameManagerScript:
+        var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.on_loading_complete()
     else:
         if ResourceLoader.exists(LETTER_SCENE_PATH):

@@ -2,6 +2,7 @@ extends CanvasLayer
 
 const START_MENU_SCENE_PATH := "res://scenes/main_menu/StartMenu.tscn"
 const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+const GameManagerScript := preload("res://scripts/singletons/GameManager.gd")
 
 @onready var title_label: Label = $Panel/MarginContainer/VBoxContainer/TitleLabel
 @onready var commander_label: Label = $Panel/MarginContainer/VBoxContainer/CommanderLabel
@@ -59,8 +60,9 @@ func _populate_fields(summary: Dictionary) -> void:
 func _on_continue_pressed() -> void:
     print("[VictoryPanel] CONTINUE pressed")
     hide_victory()
-    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
-    if manager:
+    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    if manager_node is GameManagerScript:
+        var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.enter_upgrade()
     else:
         var tree := get_tree()

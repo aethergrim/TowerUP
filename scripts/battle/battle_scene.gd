@@ -2,6 +2,7 @@ extends Node2D
 
 const Constants := preload("res://scripts/constants.gd")
 const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+const GameManagerScript := preload("res://scripts/singletons/GameManager.gd")
 
 @onready var tower: Node2D = $Tower
 @onready var enemy_spawner: Node2D = $EnemySpawner
@@ -250,8 +251,8 @@ func _show_victory_panel(summary: Dictionary) -> bool:
 func _ensure_game_manager() -> GameManagerSingleton:
     if _game_manager == null:
         var node := AutoloadUtils.get_autoload("GameManager")
-        if node is GameManagerSingleton:
-            _game_manager = node
+        if node is GameManagerScript:
+            _game_manager = node as GameManagerSingleton
         elif node != null:
             push_error("[BattleScene] Autoload 'GameManager' is not a GameManagerSingleton instance")
     return _game_manager

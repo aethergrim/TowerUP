@@ -1,6 +1,7 @@
 extends Control
 
 const AutoloadUtils := preload("res://scripts/utils/autoload_utils.gd")
+const GameManagerScript := preload("res://scripts/singletons/GameManager.gd")
 
 const RESOLUTION_LABELS: Array[String] = [
     "640 x 360",
@@ -41,16 +42,18 @@ func _ready() -> void:
 
 func _on_campaign_pressed() -> void:
     print("[StartMenu] CAMPAIGN pressed")
-    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
-    if manager:
+    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    if manager_node is GameManagerScript:
+        var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.start_new_game()
     else:
         push_error("[StartMenu] GameManager autoload missing; unable to start campaign")
 
 func _on_quick_pressed() -> void:
     print("[StartMenu] QUICK SKIRMISH pressed")
-    var manager := AutoloadUtils.get_autoload("GameManager") as GameManagerSingleton
-    if manager:
+    var manager_node := AutoloadUtils.get_autoload("GameManager")
+    if manager_node is GameManagerScript:
+        var manager: GameManagerSingleton = manager_node as GameManagerSingleton
         manager.start_new_game()
     else:
         push_error("[StartMenu] GameManager autoload missing; unable to start skirmish")
