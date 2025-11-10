@@ -20,12 +20,14 @@ var _collected_resources: Dictionary = {
 }
 var _wave_finished: bool = false
 var _kill_counts: Dictionary = {}
+var _game_manager: GameManager = null
 
 func _ready() -> void:
     var tree := get_tree()
     if tree:
         tree.paused = false
     _reset_state()
+    _game_manager = _get_game_manager()
     _register_tower_with_systems()
     _connect_signals()
     _apply_upgrade_profile()
@@ -75,29 +77,34 @@ func _connect_signals() -> void:
         debug_end_button.pressed.connect(_on_debug_end_pressed)
 
 func _apply_upgrade_profile() -> void:
-    if not tower or not Engine.has_singleton("GameManager"):
+    if not tower:
         return
-    var upgrades: Dictionary = GameManager.get_tower_upgrades()
+    var manager := _ensure_game_manager()
+    if manager == null:
+        return
+    var upgrades: Dictionary = manager.get_tower_upgrades()
     if tower.has_method("apply_upgrade_profile"):
         tower.apply_upgrade_profile(upgrades)
 
 func _begin_wave() -> void:
     var spec: Array = []
-    if Engine.has_singleton("GameManager"):
-        spec = GameManager.get_upcoming_wave()
+    var manager := _ensure_game_manager()
+    if manager:
+        spec = manager.get_upcoming_wave()
     if spec.is_empty():
-        if Engine.has_singleton("GameManager"):
-            var generator = GameManager.get_wave_generator()
-            spec = generator.generate_wave(GameManager.days_survived)
-            GameManager.set_upcoming_wave(spec)
-            spec = GameManager.get_upcoming_wave()
+        if manager:
+            var generator = manager.get_wave_generator()
+            spec = generator.generate_wave(manager.days_survived)
+            manager.set_upcoming_wave(spec)
+            spec = manager.get_upcoming_wave()
     if enemy_spawner and enemy_spawner.has_method("start_wave"):
         enemy_spawner.start_wave(spec, tower)
 
 func _update_status_text() -> void:
     var day_number: int = 1
-    if Engine.has_singleton("GameManager"):
-        day_number = GameManager.days_survived + 1
+    var manager := _ensure_game_manager()
+    if manager:
+        day_number = manager.days_survived + 1
     var ammo_value: int = 0
     var heat_value: float = 0.0
     var max_heat: float = 0.0
@@ -185,33 +192,38 @@ func _finish_wave(victory: bool) -> void:
         debug_end_button.disabled = true
     if enemy_spawner and enemy_spawner.has_method("cancel_spawning"):
         enemy_spawner.cancel_spawning()
-    if not Engine.has_singleton("GameManager"):
+    var manager := _ensure_game_manager()
+    if manager == null:
         if victory:
             _show_victory_panel({})
         else:
             get_tree().change_scene_to_file("res://scenes/main_menu/StartMenu.tscn")
         return
     if victory:
-        var completed_day: int = GameManager.days_survived + 1
+        var completed_day: int = manager.days_survived + 1
         var summary := _build_victory_summary(completed_day)
-        GameManager.collect_battle_rewards(_collected_resources.duplicate())
-        GameManager.advance_day()
+        manager.collect_battle_rewards(_collected_resources.duplicate())
+        manager.advance_day()
         if not _show_victory_panel(summary):
-            GameManager.enter_upgrade()
+            manager.enter_upgrade()
     else:
         if game_over_ui != null:
             return
         call_deferred("_request_defeat_transition")
 
 func _request_defeat_transition() -> void:
-    if Engine.has_singleton("GameManager"):
-        GameManager.return_to_start_menu()
+    var manager := _ensure_game_manager()
+    if manager:
+        manager.return_to_start_menu()
     else:
         get_tree().change_scene_to_file("res://scenes/main_menu/StartMenu.tscn")
 
 func _build_victory_summary(completed_day: int) -> Dictionary:
     var commanders: Array[String] = []
-    var letter: Dictionary = GameManager.get_letter_summary()
+    var manager := _ensure_game_manager()
+    var letter: Dictionary = {}
+    if manager:
+        letter = manager.get_letter_summary()
     var commander_name: String = letter.get("commander", "Unknown Commander")
     if not commander_name.is_empty():
         commanders.append(commander_name)
@@ -224,11 +236,22 @@ func _build_victory_summary(completed_day: int) -> Dictionary:
 
 func _show_victory_panel(summary: Dictionary) -> bool:
     if victory_panel == null:
-        if Engine.has_singleton("GameManager"):
-            GameManager.enter_upgrade()
+        var manager := _ensure_game_manager()
+        if manager:
+            manager.enter_upgrade()
         return true
     if victory_panel.has_method("show_victory"):
         victory_panel.show_victory(summary)
         return true
     victory_panel.visible = true
     return true
+
+func _get_game_manager() -> GameManager:
+    if Engine.has_singleton("GameManager"):
+        return GameManager
+    return null
+
+func _ensure_game_manager() -> GameManager:
+    if _game_manager == null:
+        _game_manager = _get_game_manager()
+    return _game_manager

@@ -43,8 +43,9 @@ func _load_paths_async(total: int) -> void:
         await get_tree().process_frame
 
 func _loading_complete() -> void:
-    if Engine.has_singleton("GameManager"):
-        GameManager.prepare_next_wave()
+    var manager := _get_game_manager()
+    if manager:
+        manager.prepare_next_wave()
     _loading_finished = true
     status_label.text = "Siege ready."
     if continue_button:
@@ -60,7 +61,13 @@ func _on_continue_pressed() -> void:
     _proceed_to_next_scene()
 
 func _proceed_to_next_scene() -> void:
-    if Engine.has_singleton("GameManager"):
-        GameManager.on_loading_complete()
+    var manager := _get_game_manager()
+    if manager:
+        manager.on_loading_complete()
     else:
         get_tree().change_scene_to_file("res://scenes/main_menu/LetterModifierWarning.tscn")
+
+func _get_game_manager() -> GameManager:
+    if Engine.has_singleton("GameManager"):
+        return GameManager
+    return null

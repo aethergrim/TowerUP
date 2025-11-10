@@ -9,12 +9,13 @@ func _ready() -> void:
     _refresh_letter()
 
 func _refresh_letter() -> void:
-    if Engine.has_singleton("GameManager"):
-        var summary: Dictionary = GameManager.get_letter_summary()
+    var manager := _get_game_manager()
+    if manager:
+        var summary: Dictionary = manager.get_letter_summary()
         var commander: String = summary.get("commander", "Unknown Commander")
         var intro: String = summary.get("intro", "The enemy advances.")
         var modifier: String = summary.get("modifier", "")
-        var wave_index: int = summary.get("wave_index", GameManager.days_survived + 1)
+        var wave_index: int = summary.get("wave_index", manager.days_survived + 1)
         var header: String = "Commander %s" % commander
         var lines: Array[String] = [header, "Wave %d approaches." % wave_index, intro]
         if not modifier.is_empty():
@@ -29,3 +30,8 @@ func get_letter_text() -> String:
 
 func confirm() -> void:
     continue_requested.emit()
+
+func _get_game_manager() -> GameManager:
+    if Engine.has_singleton("GameManager"):
+        return GameManager
+    return null

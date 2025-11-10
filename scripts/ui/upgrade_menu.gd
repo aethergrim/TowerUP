@@ -34,8 +34,9 @@ func _ready() -> void:
     storage_button.pressed.connect(_on_storage_pressed)
     deploy_button.pressed.connect(_on_deploy_pressed)
     abandon_button.pressed.connect(_on_abandon_pressed)
-    if Engine.has_singleton("GameManager"):
-        GameManager.resources_updated.connect(_refresh_resources)
+    var manager := _get_game_manager()
+    if manager:
+        manager.resources_updated.connect(_refresh_resources)
     _refresh_resources()
 
 func _on_letter_updated(text: String) -> void:
@@ -44,22 +45,24 @@ func _on_letter_updated(text: String) -> void:
 func _refresh_resources() -> void:
     var metal: int = 0
     var essence: int = 0
-    if Engine.has_singleton("GameManager"):
-        var snapshot: Dictionary = GameManager.get_resources()
+    var manager := _get_game_manager()
+    if manager:
+        var snapshot: Dictionary = manager.get_resources()
         metal = snapshot.get(Constants.LOOT_METAL, 0)
         essence = snapshot.get(Constants.LOOT_ESSENCE, 0)
     resources_label.text = "Metal: %d | Essence: %d" % [metal, essence]
 
 func _attempt_purchase(id: String) -> void:
-    if not Engine.has_singleton("GameManager"):
+    var manager := _get_game_manager()
+    if manager == null:
         return
     var cost: Dictionary = UPGRADE_COSTS.get(id, {})
     if cost.is_empty():
         return
     var resource_id: String = cost.get("resource", Constants.LOOT_METAL)
     var amount: int = int(cost.get("amount", 0))
-    if GameManager.spend_resource(resource_id, amount):
-        GameManager.apply_upgrade(id)
+    if manager.spend_resource(resource_id, amount):
+        manager.apply_upgrade(id)
         _refresh_resources()
 
 func _on_reinforced_pressed() -> void:
@@ -75,11 +78,18 @@ func _on_storage_pressed() -> void:
     _attempt_purchase("extra_storage")
 
 func _on_deploy_pressed() -> void:
-    if Engine.has_singleton("GameManager"):
-        GameManager.enter_loading_screen()
+    var manager := _get_game_manager()
+    if manager:
+        manager.enter_loading_screen()
     if _letter_system and _letter_system.has_method("confirm"):
         _letter_system.confirm()
 
 func _on_abandon_pressed() -> void:
+    var manager := _get_game_manager()
+    if manager:
+        manager.return_to_start_menu()
+
+func _get_game_manager() -> GameManager:
     if Engine.has_singleton("GameManager"):
-        GameManager.return_to_start_menu()
+        return GameManager
+    return null

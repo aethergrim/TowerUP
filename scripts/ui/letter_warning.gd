@@ -18,18 +18,19 @@ func _ready() -> void:
     _prepare_letter()
 
 func _prepare_letter() -> void:
-    if not Engine.has_singleton("GameManager"):
+    var manager := _get_game_manager()
+    if manager == null:
         _populate_fallback_text()
         return
-    var day_index: int = GameManager.days_survived
-    var spec: Array = GameManager.get_upcoming_wave()
+    var day_index: int = manager.days_survived
+    var spec: Array = manager.get_upcoming_wave()
     if spec.is_empty():
-        GameManager.prepare_next_wave()
-        spec = GameManager.get_upcoming_wave()
-    var letter: Dictionary = GameManager.get_letter_summary()
+        manager.prepare_next_wave()
+        spec = manager.get_upcoming_wave()
+    var letter: Dictionary = manager.get_letter_summary()
     if letter.is_empty():
-        GameManager.prepare_next_wave()
-        letter = GameManager.get_letter_summary()
+        manager.prepare_next_wave()
+        letter = manager.get_letter_summary()
     _current_spec = spec
     _letter_data = letter
     _display_letter(day_index, letter)
@@ -62,13 +63,20 @@ func _populate_fallback_text() -> void:
     summary_label.text = "Awaiting wave specifications."
 
 func _on_proceed_pressed() -> void:
-    if Engine.has_singleton("GameManager"):
-        GameManager.enter_battle()
+    var manager := _get_game_manager()
+    if manager:
+        manager.enter_battle()
     else:
         get_tree().change_scene_to_file("res://scenes/battle/BattleScene.tscn")
 
 func _on_back_pressed() -> void:
-    if Engine.has_singleton("GameManager"):
-        GameManager.enter_upgrade()
+    var manager := _get_game_manager()
+    if manager:
+        manager.enter_upgrade()
     else:
         get_tree().change_scene_to_file(START_MENU_SCENE_PATH)
+
+func _get_game_manager() -> GameManager:
+    if Engine.has_singleton("GameManager"):
+        return GameManager
+    return null

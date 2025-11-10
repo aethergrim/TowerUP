@@ -1,4 +1,5 @@
 extends Node
+class_name GameManager
 
 const Constants := preload("res://scripts/constants.gd")
 const WaveGenResource := preload("res://scripts/systems/WaveGen.gd")

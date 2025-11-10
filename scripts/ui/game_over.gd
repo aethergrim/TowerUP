@@ -30,8 +30,9 @@ func _on_return_pressed() -> void:
     var tree := get_tree()
     if tree:
         tree.paused = false
-    if Engine.has_singleton("GameManager"):
-        GameManager.return_to_start_menu()
+    var manager := _get_game_manager()
+    if manager:
+        manager.return_to_start_menu()
         return
     var scene: PackedScene = load(START_MENU_SCENE_PATH)
     if scene and tree:
@@ -41,7 +42,16 @@ func _refresh_title() -> void:
     if not title_label:
         return
     var day_text: String = ""
-    if Engine.has_singleton("GameManager"):
-        var days: int = max(1, GameManager.days_survived)
-        day_text = "\nThe Tower stood for %d day%s." % [days, "s" if days != 1 else ""]
+    var manager := _get_game_manager()
+    if manager:
+        var days: int = max(1, manager.days_survived)
+        var suffix: String = ""
+        if days != 1:
+            suffix = "s"
+        day_text = "\nThe Tower stood for %d day%s." % [days, suffix]
     title_label.text = "GAME OVER%s" % day_text
+
+func _get_game_manager() -> GameManager:
+    if Engine.has_singleton("GameManager"):
+        return GameManager
+    return null

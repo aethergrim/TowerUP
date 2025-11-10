@@ -57,9 +57,15 @@ func _populate_fields(summary: Dictionary) -> void:
 
 func _on_continue_pressed() -> void:
     hide_victory()
-    if Engine.has_singleton("GameManager"):
-        GameManager.enter_upgrade()
+    var manager := _get_game_manager()
+    if manager:
+        manager.enter_upgrade()
     else:
         var tree := get_tree()
         if tree:
             tree.change_scene_to_file(START_MENU_SCENE_PATH)
+
+func _get_game_manager() -> GameManager:
+    if Engine.has_singleton("GameManager"):
+        return GameManager
+    return null
