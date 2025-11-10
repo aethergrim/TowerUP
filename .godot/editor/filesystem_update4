@@ -1,0 +1,6 @@
+res://scripts/ui/start_menu.gd
+res://scenes/upgrade/UpgradeScene.tscn
+res://scenes/main_menu/MainMenu.tscn
+res://scenes/battle/BattleScene.tscn
+res://scenes/main_menu/StartMenu.tscn
+res://scripts/systems/enemy_spawner.gd
