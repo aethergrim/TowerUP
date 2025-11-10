@@ -173,9 +173,21 @@ func _finish_wave(victory: bool) -> void:
     if _wave_finished:
         return
     _wave_finished = true
+    if debug_end_button:
+        debug_end_button.disabled = true
+    if enemy_spawner and enemy_spawner.has_method("cancel_spawning"):
+        enemy_spawner.cancel_spawning()
     if not Engine.has_singleton("GameManager"):
+        if victory:
+            get_tree().change_scene_to_file("res://scenes/main_menu/LoadingScreen.tscn")
+        else:
+            get_tree().change_scene_to_file("res://scenes/main_menu/StartMenu.tscn")
         return
     if victory:
         GameManager.collect_battle_rewards(_collected_resources.duplicate())
         GameManager.advance_day()
-        GameManager.show_letter_scene()
+        GameManager.enter_loading_screen()
+    else:
+        if game_over_ui != null:
+            return
+        GameManager.return_to_start_menu()

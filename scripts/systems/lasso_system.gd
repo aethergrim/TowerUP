@@ -21,6 +21,7 @@ func _ready() -> void:
     set_process(true)
     set_process_input(true)
     set_process_unhandled_input(true)
+    queue_redraw()
 
 func _process(delta: float) -> void:
     match _state:
@@ -85,6 +86,8 @@ func _capture_loot() -> void:
         loot_collected.emit(loot_type)
 
 func _draw() -> void:
+    draw_circle(Vector2.ZERO, 6.0, Color(0.95, 0.9, 0.4, 0.35))
+    draw_circle(Vector2.ZERO, 2.0, Color(1.0, 1.0, 0.8, 0.8))
     if _state == State.IDLE:
         return
     draw_line(to_local(_origin), to_local(_current_tip), Color(0.9, 0.9, 0.5), 2.0)

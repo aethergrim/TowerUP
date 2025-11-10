@@ -52,7 +52,7 @@ func reset_campaign() -> void:
 
 func start_new_game() -> void:
     reset_campaign()
-    _change_scene(LOADING_SCENE_PATH)
+    enter_loading_screen()
 
 func on_loading_complete() -> void:
     show_letter_scene()
@@ -65,6 +65,9 @@ func enter_upgrade() -> void:
 
 func enter_battle() -> void:
     _change_scene(BATTLE_SCENE_PATH)
+
+func enter_loading_screen() -> void:
+    _change_scene(LOADING_SCENE_PATH)
 
 func return_to_start_menu() -> void:
     _change_scene(START_MENU_SCENE_PATH)

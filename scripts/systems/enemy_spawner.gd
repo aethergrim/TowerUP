@@ -13,10 +13,8 @@ signal enemy_defeated(position: Vector2, loot: Dictionary)
 var _tower: Node2D = null
 var _active_enemies: Array[Node2D] = []
 var _spawn_queue: Array[Dictionary] = []
-var _delay_timer: float = 0.0
-var _interval_timer: float = 0.0
 var _spawning: bool = false
-var _enemy_specs: Dictionary = {}
+var _spawn_timer: Timer = null
 
 @onready var _spawn_markers: Dictionary = {
     Constants.Dir.N: $SpawnN,
@@ -39,30 +37,43 @@ func start_wave(wave_spec: Array, tower_ref: Node2D) -> void:
         wave_cleared.emit()
         return
     wave_started.emit()
-    _delay_timer = max(spawn_delay, 0.0)
-    _interval_timer = 0.0
     _spawning = true
-    set_process(true)
+    _ensure_spawn_timer()
+    _schedule_next_spawn(max(spawn_delay, 0.0))
 
-func _process(delta: float) -> void:
+func _ensure_spawn_timer() -> void:
+    if _spawn_timer != null:
+        return
+    _spawn_timer = Timer.new()
+    _spawn_timer.one_shot = true
+    _spawn_timer.process_mode = Node.PROCESS_MODE_PAUSABLE
+    add_child(_spawn_timer)
+    _spawn_timer.timeout.connect(_on_spawn_timer_timeout)
+
+func _schedule_next_spawn(delay: float) -> void:
+    if _spawn_timer == null:
+        return
+    _spawn_timer.stop()
+    _spawn_timer.wait_time = max(delay, 0.0)
+    _spawn_timer.start()
+
+func _on_spawn_timer_timeout() -> void:
     if not _spawning:
-        set_process(false)
-        return
-    if _delay_timer > 0.0:
-        _delay_timer -= delta
-        return
-    if _interval_timer > 0.0:
-        _interval_timer -= delta
         return
     if _spawn_queue.is_empty():
         _spawning = false
         if _active_enemies.is_empty():
             wave_cleared.emit()
-        set_process(false)
         return
-    var spec: Dictionary = _spawn_queue.pop_front()
+    var spec: Dictionary = _spawn_queue[0]
+    _spawn_queue.remove_at(0)
     _spawn_enemy(spec)
-    _interval_timer = max(spawn_interval, 0.0)
+    if _spawn_queue.is_empty():
+        _spawning = false
+        if _active_enemies.is_empty():
+            wave_cleared.emit()
+        return
+    _schedule_next_spawn(max(spawn_interval, 0.0))
 
 func _spawn_enemy(spec: Dictionary) -> void:
     if enemy_scene == null:
@@ -79,7 +90,6 @@ func _spawn_enemy(spec: Dictionary) -> void:
     if enemy_instance.has_signal("died"):
         enemy_instance.died.connect(_on_enemy_died)
     _active_enemies.append(enemy_instance)
-    _enemy_specs[enemy_instance] = spec
 
 func _get_spawn_position(direction: int) -> Vector2:
     var marker := _spawn_markers.get(direction, null) as Marker2D
@@ -92,7 +102,6 @@ func _get_spawn_position(direction: int) -> Vector2:
 
 func _on_enemy_died(enemy: Node2D, position: Vector2, loot: Dictionary) -> void:
     _active_enemies.erase(enemy)
-    _enemy_specs.erase(enemy)
     enemy_defeated.emit(position, loot)
     if _active_enemies.is_empty() and _spawn_queue.is_empty():
         wave_cleared.emit()
@@ -103,8 +112,6 @@ func cancel_spawning() -> void:
             enemy.queue_free()
     _active_enemies.clear()
     _spawn_queue.clear()
-    _enemy_specs.clear()
-    _delay_timer = 0.0
-    _interval_timer = 0.0
+    if _spawn_timer:
+        _spawn_timer.stop()
     _spawning = false
-    set_process(false)
